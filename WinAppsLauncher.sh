@@ -31,6 +31,19 @@ function on_exit() {
 }
 trap on_exit EXIT
 
+# Kill FreeRDP
+kill_xfreerdp() {
+    # Find all FreeRDP processes
+    local pids=$(pgrep $RDP_COMMAND)
+
+    # Check if any processes were found
+    if [ -n "$pids" ]; then
+        echo "$pids" | xargs kill -9
+        show_error_message "<u>KILLED</u> FreeRDP (${RDP_COMMAND}) process(es): ${pids}."
+    fi
+}
+export -f kill_xfreerdp
+
 # Error Message
 show_error_message() {
     local message="${1}"
@@ -53,21 +66,25 @@ export -f show_error_message
 
 # Application Selection
 app_select() {
-    local selected_app=$(yad --list \
-    --title="WinApps" \
-    --width=300 \
-    --height=500 \
-    --text="Select Windows Application to Launch:" \
-    --column="Application Name" \
-    $(ls $WINAPPS_PATH | grep -v -E "^(winapps|windows)$"))
+    if check_reachable; then
+        local selected_app=$(yad --list \
+        --title="WinApps" \
+        --width=300 \
+        --height=500 \
+        --text="Select Windows Application to Launch:" \
+        --column="Application Name" \
+        $(ls $WINAPPS_PATH | grep -v -E "^(winapps|windows)$"))
 
-    # Remove Trailing Bar
-    selected_app=$(echo $selected_app | cut -d"|" -f1)
+        if [ -n "${selected_app}" ]; then
+            # Remove Trailing Bar
+            selected_app=$(echo $selected_app | cut -d"|" -f1)
 
-    echo "SELECTED APPLICATION '$selected_app'"
+            echo "SELECTED APPLICATION '$selected_app'"
 
-    # Run Selected Application
-    $WINAPPS_PATH/winapps $selected_app %F
+            # Run Selected Application
+            $WINAPPS_PATH/winapps $selected_app
+        fi
+    fi
 }
 export -f app_select
 
@@ -87,6 +104,23 @@ check_valid_domain() {
 }
 export -f check_valid_domain
 
+# Check Reachable
+check_reachable() {
+    #VM_IP=$(virsh net-dhcp-leases default | grep "${VM_NAME}" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}') # Unreliable since this does not always list VM
+    local VM_MAC=$(virsh domiflist "${VM_NAME}" | grep -Eo '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})') # Virtual Machine MAC Address
+    local VM_IP=$(arp -n | grep "${VM_MAC}" | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}") # Virtual Machine IP Address
+
+    if [ -z "${VM_IP}" ]; then
+        # Empty
+        show_error_message "ERROR: Windows VM is <u>UNREACHABLE</u>.\nPlease ensure <i>'${VM_NAME}'</i> has an IP address."
+        return 1
+    else
+        # Not Empty
+        return 0
+    fi
+}
+export -f check_reachable
+
 generate_menu() {
     VM_STATE=$(virsh domstate "${VM_NAME}" 2>&1 | xargs) # Virtual Machine State
 
@@ -100,6 +134,7 @@ Power Off!bash -c power_off_vm!system-shutdown|\
 Reboot!bash -c reboot_vm!system-reboot|\
 Force Power Off!bash -c force_power_off_vm!process-stop|\
 Reset!bash -c reset_vm!view-refresh|\
+Kill FreeRDP!bash -c kill_xfreerdp!call-stop|\
 Refresh Menu!bash -c refresh_menu!edit-clear-all|\
 Quit!quit!application-exit" >&3
     elif [ "${VM_STATE}" = "paused" ]; then
@@ -110,11 +145,13 @@ Power Off!bash -c power_off_vm!system-shutdown|\
 Reboot!bash -c reboot_vm!system-reboot|\
 Force Power Off!bash -c force_power_off_vm!process-stop|\
 Reset!bash -c reset_vm!view-refresh|\
+Kill FreeRDP!bash -c kill_xfreerdp!call-stop|\
 Refresh Menu!bash -c refresh_menu!edit-clear-all|\
 Quit!quit!application-exit" >&3
     elif [ "${VM_STATE}" = "shut off" ]; then
         echo "menu:\
 Power On!bash -c power_on_vm!gtk-yes|\
+Kill FreeRDP!bash -c kill_xfreerdp!call-stop|\
 Refresh Menu!bash -c refresh_menu!edit-clear-all|\
 Quit!quit!application-exit" >&3
     fi
@@ -228,18 +265,9 @@ export -f refresh_menu
 # Launch Windows
 function launch_windows() {
     echo "LAUNCH WINDOWS"
-
-    #VM_IP=$(virsh net-dhcp-leases default | grep "${VM_NAME}" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}') # Unreliable since this does not always list VM
-    local VM_MAC=$(virsh domiflist "${VM_NAME}" | grep -Eo '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})') # Virtual Machine MAC Address
-    local VM_IP=$(arp -n | grep "${VM_MAC}" | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}") # Virtual Machine IP Address
-
-    if ! [ -z "$VM_IP" ]; then
+    if check_reachable; then
         # Run FreeRDP
         winapps windows
-    else
-        # No Connection
-        show_error_message "ERROR: Windows VM is <u>UNREACHABLE</u>.\nPlease ensure <i>'${VM_NAME}'</i> has an IP address."
-        exit 2
     fi
 }
 export -f launch_windows
@@ -266,5 +294,6 @@ Power Off!bash -c power_off_vm!system-shutdown|\
 Reboot!bash -c reboot_vm!system-reboot|\
 Force Power Off!bash -c force_power_off_vm!process-stop|\
 Reset!bash -c reset_vm!view-refresh|\
+Kill FreeRDP!bash -c kill_xfreerdp!call-stop|\
 Refresh Menu!bash -c refresh_menu!edit-clear-all|\
 Quit!quit!application-exit" <&3
