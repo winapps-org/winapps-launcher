@@ -3,29 +3,26 @@
 export readonly VM_NAME="RDPWindows" # Virtual Machine Name
 export readonly RDP_COMMAND="xfreerdp" # FreeRDP Command
 export readonly WINAPPS_PATH="/usr/local/bin" # WinApps Install Path
+export readonly SLEEP_DURATION="2"
+export readonly ERROR_TEXT="\033[1;31m"
+export readonly DEBUG_TEXT="\033[1;33m"
+export readonly STATUS_TEXT="\033[1;32m"
+export readonly ADDRESS_TEXT="\033[1;34m"
+export readonly COMMAND_TEXT="\033[0;37m"
+export readonly RESET_TEXT="\033[0m"
 
 # ### FIFO FILE & FILE DESCRIPTOR ###
 export PIPE=$(mktemp -u --tmpdir ${0##*/}.XXXXXXXX)
 mkfifo $PIPE
 exec 3<> $PIPE
 
-### CHECK DEPENDENCIES ###
-# 'yad'
-if ! command -v yad &> /dev/null; then
-    echo "ERROR: 'yad' not installed. Exiting."
-    exit 1
-fi
-
-# 'libvirt'
-if ! command -v virsh &> /dev/null; then
-    echo "ERROR: 'libvirt' not installed. Exiting."
-    exit 1
-fi
-
 ### FUNCTIONS ###
 # Process Shutdown Handler
 function on_exit() {
-    echo "EXITING"
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> EXIT${RESET_TEXT}"
+    
+    # Clean Exit
     echo "quit" >&3
     rm -f $PIPE
 }
@@ -33,12 +30,15 @@ trap on_exit EXIT
 
 # Kill FreeRDP
 kill_xfreerdp() {
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> KILL FREERDP PROCESSES${RESET_TEXT}"
+    
     # Find all FreeRDP processes
     local pids=$(pgrep $RDP_COMMAND)
 
     # Check if any processes were found
     if [ -n "$pids" ]; then
-        echo "$pids" | xargs kill -9
+        echo -e "${COMMAND_TEXT}% $(echo "$pids" | xargs kill -9)${RESET_TEXT}"
         show_error_message "<u>KILLED</u> FreeRDP (${RDP_COMMAND}) process(es): ${pids}."
     fi
 }
@@ -79,7 +79,8 @@ app_select() {
             # Remove Trailing Bar
             selected_app=$(echo $selected_app | cut -d"|" -f1)
 
-            echo "SELECTED APPLICATION '$selected_app'"
+            # Print Feedback
+            echo -e "${DEBUG_TEXT}> SELECTED APPLICATION '$selected_app'${RESET_TEXT}"
 
             # Run Selected Application
             $WINAPPS_PATH/winapps $selected_app
@@ -90,7 +91,8 @@ export -f app_select
 
 # Check Valid Domain
 check_valid_domain() {
-    VM_STATE=$(virsh domstate "${VM_NAME}" 2>&1 | xargs) # Virtual Machine State
+    # Check Virtual Machine State
+    VM_STATE=$(virsh domstate "${VM_NAME}" 2>&1 | xargs)
 
     if grep -q "argument is empty" <<< "${VM_STATE}"; then
         # Unspecified Domain
@@ -116,13 +118,20 @@ check_reachable() {
         return 1
     else
         # Not Empty
+        # Print Feedback
+        echo -e "${ADDRESS_TEXT}# VM MAC ADDRESS: ${VM_MAC}${RESET_TEXT}"
+        echo -e "${ADDRESS_TEXT}# VM IP ADDRESS: ${VM_IP}${RESET_TEXT}"
         return 0
     fi
 }
 export -f check_reachable
 
 generate_menu() {
-    VM_STATE=$(virsh domstate "${VM_NAME}" 2>&1 | xargs) # Virtual Machine State
+    # Check Virtual Machine State
+    VM_STATE=$(virsh domstate "${VM_NAME}" 2>&1 | xargs)
+    
+    # Print Feedback
+    echo -e "${STATUS_TEXT}* VM STATE: ${VM_STATE^^}${RESET_TEXT}"
 
     if [ "${VM_STATE}" = "running" ]; then
         echo "menu:\
@@ -160,23 +169,38 @@ export -f generate_menu
 
 # Power On VM
 function power_on_vm() {
-    echo "POWER ON"
-    exec 3<> $PIPE # Reopen PIPE
-    virsh start $VM_NAME
-    sleep 1
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> POWER ON VM${RESET_TEXT}"
+    
+    # Reopen PIPE
+    exec 3<> $PIPE
+    
+    # Issue Command
+    echo -e "${COMMAND_TEXT}% $(virsh start $VM_NAME | grep -v "^$")${RESET_TEXT}"
+    sleep $SLEEP_DURATION
+    
+    # Refresh Menu
     generate_menu
 }
 export -f power_on_vm
 
 # Power Off VM
 function power_off_vm() {
-    echo "POWER OFF"
-    exec 3<> $PIPE # Reopen PIPE
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> POWER OFF VM${RESET_TEXT}"
+    
+    # Reopen PIPE
+    exec 3<> $PIPE
+    
     if pgrep -x $RDP_COMMAND > /dev/null; then
+        # FreeRDP Sessions Running
         show_error_message "ERROR: Powering Off Windows VM <u>FAILED</u>.\nPlease ensure all FreeRDP instance(s) are terminated."
     else
-        virsh shutdown $VM_NAME
-        sleep 1
+        # Issue Command
+        echo -e "${COMMAND_TEXT}% $(virsh shutdown $VM_NAME | grep -v "^$")${RESET_TEXT}"
+        sleep $SLEEP_DURATION
+        
+        # Refresh Menu
         generate_menu
     fi
 }
@@ -184,13 +208,21 @@ export -f power_off_vm
 
 # Pause VM
 function pause_vm() {
-    echo "PAUSE"
-    exec 3<> $PIPE # Reopen PIPE
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> PAUSE VM${RESET_TEXT}"
+    
+    # Reopen PIPE
+    exec 3<> $PIPE
+    
     if pgrep -x $RDP_COMMAND > /dev/null; then
+        # FreeRDP Sessions Running
         show_error_message "ERROR: Pausing Windows VM <u>FAILED</u>.\nPlease ensure all FreeRDP instance(s) are terminated."
     else
-        virsh suspend $VM_NAME
-        sleep 1
+        # Issue Command
+        echo -e "${COMMAND_TEXT}% $(virsh suspend $VM_NAME | grep -v "^$")${RESET_TEXT}"
+        sleep $SLEEP_DURATION
+        
+        # Refresh Menu
         generate_menu
     fi
 }
@@ -198,33 +230,55 @@ export -f pause_vm
 
 # Resume VM
 function resume_vm() {
-    echo "RESUME"
-    exec 3<> $PIPE # Reopen PIPE
-    virsh resume $VM_NAME
-    sleep 1
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> RESUME VM${RESET_TEXT}"
+
+    # Reopen PIPE
+    exec 3<> $PIPE
+    
+    # Issue Command
+    echo -e "${COMMAND_TEXT}% $(virsh resume $VM_NAME | grep -v "^$")${RESET_TEXT}"
+    sleep $SLEEP_DURATION
+    
+    # Refresh Menu
     generate_menu
 }
 export -f resume_vm
 
 # Reset VM
 function reset_vm() {
-    echo "RESET"
-    exec 3<> $PIPE # Reopen PIPE
-    virsh reset $VM_NAME
-    sleep 1
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> RESET VM${RESET_TEXT}"
+    
+    # Reopen PIPE
+    exec 3<> $PIPE
+    
+    # Issue Command
+    echo -e "${COMMAND_TEXT}% $(virsh reset $VM_NAME | grep -v "^$")${RESET_TEXT}"
+    sleep $SLEEP_DURATION
+    
+    # Refresh Menu
     generate_menu
 }
 export -f reset_vm
 
 # Reboot VM
 function reboot_vm() {
-    echo "REBOOT"
-    exec 3<> $PIPE # Reopen PIPE
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> REBOOT VM${RESET_TEXT}"
+
+    # Reopen PIPE
+    exec 3<> $PIPE
+    
     if pgrep -x $RDP_COMMAND > /dev/null; then
+        # FreeRDP Sessions Running
         show_error_message "ERROR: Rebooting Windows VM <u>FAILED</u>.\nPlease ensure all FreeRDP instance(s) are terminated."
     else
-        virsh reboot $VM_NAME
-        sleep 1
+        # Issue Command
+        echo -e "${COMMAND_TEXT}% $(virsh reboot $VM_NAME | grep -v "^$")${RESET_TEXT}"
+        sleep $SLEEP_DURATION
+        
+        # Refresh Menu
         generate_menu
     fi
 }
@@ -232,23 +286,37 @@ export -f reboot_vm
 
 # Force Power Off VM
 function force_power_off_vm() {
-    echo "FORCE POWER OFF"
-    exec 3<> $PIPE # Reopen PIPE
-    virsh destroy $VM_NAME --graceful
-    sleep 1
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> FORCE POWER OFF VM${RESET_TEXT}"
+
+    # Reopen PIPE
+    exec 3<> $PIPE
+    
+    # Issue Command
+    echo -e "${COMMAND_TEXT}% $(virsh destroy $VM_NAME --graceful | grep -v "^$")${RESET_TEXT}"
+    sleep $SLEEP_DURATION
+    
+    # Refresh Menu
     generate_menu
 }
 export -f force_power_off_vm
 
 # Save VM
 function save_vm() {
-    echo "SAVE"
-    exec 3<> $PIPE # Reopen PIPE
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> SAVE VM${RESET_TEXT}"
+
+    # Reopen PIPE
+    exec 3<> $PIPE
     if pgrep -x $RDP_COMMAND > /dev/null; then
+        # FreeRDP Sessions Running
         show_error_message "ERROR: Saving Windows VM <u>FAILED</u>.\nPlease ensure all FreeRDP instance(s) are terminated."
     else
-        virsh managedsave $VM_NAME
-        sleep 1
+        # Issue Command
+        echo -e "${COMMAND_TEXT}% $(virsh managedsave $VM_NAME | grep -v "^$")${RESET_TEXT}"
+        sleep $SLEEP_DURATION
+        
+        # Refresh Menu
         generate_menu
     fi
 }
@@ -256,21 +324,41 @@ export -f save_vm
 
 # Refresh Menu
 function refresh_menu() {
-    echo "REFRESH MENU"
-    exec 3<> $PIPE # Reopen PIPE
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> REFRESH MENU${RESET_TEXT}"
+
+    # Reopen PIPE
+    exec 3<> $PIPE
+    
+    # Refresh Menu
     generate_menu
 }
 export -f refresh_menu
 
 # Launch Windows
 function launch_windows() {
-    echo "LAUNCH WINDOWS"
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> LAUNCH WINDOWS${RESET_TEXT}"
+    
     if check_reachable; then
         # Run FreeRDP
         winapps windows
     fi
 }
 export -f launch_windows
+
+### CHECK DEPENDENCIES ###
+# 'yad'
+if ! command -v yad &> /dev/null; then
+    echo -e "${ERROR_TEXT}ERROR:${RESET_TEXT} 'yad' not installed."
+    exit 1
+fi
+
+# 'libvirt'
+if ! command -v virsh &> /dev/null; then
+    show_error_message "ERROR: 'libvirt' <u>NOT FOUND</u>.\nPlease ensure 'libvirt' is installed. Exiting."
+    exit 1
+fi
 
 ### INITIALISATION ###
 check_valid_domain
