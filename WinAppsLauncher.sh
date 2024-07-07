@@ -3,13 +3,26 @@
 export readonly VM_NAME="RDPWindows" # Virtual Machine Name
 export readonly RDP_COMMAND="xfreerdp" # FreeRDP Command
 export readonly WINAPPS_PATH="/usr/local/bin" # WinApps Install Path
-export readonly SLEEP_DURATION="2"
+export readonly SLEEP_DURATION="1.5"
 export readonly ERROR_TEXT="\033[1;31m"
 export readonly DEBUG_TEXT="\033[1;33m"
 export readonly STATUS_TEXT="\033[1;32m"
 export readonly ADDRESS_TEXT="\033[1;34m"
 export readonly COMMAND_TEXT="\033[0;37m"
 export readonly RESET_TEXT="\033[0m"
+export readonly MENU_APPLICATIONS="Applications!bash -c app_select!./Icons/Applications.svg"
+export readonly MENU_FORCEOFF="Force Power Off!bash -c force_power_off_vm!./Icons/ForceOff.svg"
+export readonly MENU_KILL="Kill FreeRDP!bash -c kill_xfreerdp!./Icons/Kill.svg"
+export readonly MENU_PAUSE="Pause!bash -c pause_vm!./Icons/Pause.svg"
+export readonly MENU_POWEROFF="Power Off!bash -c power_off_vm!./Icons/Power.svg"
+export readonly MENU_POWERON="Power On!bash -c power_on_vm!./Icons/Power.svg"
+export readonly MENU_QUIT="Quit!quit!./Icons/Quit.svg"
+export readonly MENU_REBOOT="Reboot!bash -c reboot_vm!./Icons/Reboot.svg"
+export readonly MENU_REDMOND="Windows!bash -c launch_windows!./Icons/Redmond.svg"
+export readonly MENU_REFRESH="Refresh Menu!bash -c refresh_menu!./Icons/Refresh.svg"
+export readonly MENU_RESET="Reset!bash -c reset_vm!./Icons/Reset.svg"
+export readonly MENU_RESUME="Resume!bash -c resume_vm!./Icons/Resume.svg"
+export readonly MENU_SAVE="Save!bash -c save_vm!./Icons/Save.svg"
 
 # ### FIFO FILE & FILE DESCRIPTOR ###
 export PIPE=$(mktemp -u --tmpdir ${0##*/}.XXXXXXXX)
@@ -80,7 +93,7 @@ app_select() {
             selected_app=$(echo $selected_app | cut -d"|" -f1)
 
             # Print Feedback
-            echo -e "${DEBUG_TEXT}> SELECTED APPLICATION '$selected_app'${RESET_TEXT}"
+            echo -e "${DEBUG_TEXT}> LAUNCH '$selected_app'${RESET_TEXT}"
 
             # Run Selected Application
             $WINAPPS_PATH/winapps $selected_app
@@ -88,6 +101,18 @@ app_select() {
     fi
 }
 export -f app_select
+
+# Launch Windows
+function launch_windows() {
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> LAUNCH WINDOWS${RESET_TEXT}"
+    
+    if check_reachable; then
+        # Run Windows
+        winapps windows
+    fi
+}
+export -f launch_windows
 
 # Check Valid Domain
 check_valid_domain() {
@@ -135,34 +160,34 @@ generate_menu() {
 
     if [ "${VM_STATE}" = "running" ]; then
         echo "menu:\
-Applications!bash -c app_select!window-new|\
-Windows!bash -c launch_windows!web-microsoft|\
-Pause!bash -c pause_vm!media-playback-pause|\
-Save!bash -c save_vm!system-suspend|\
-Power Off!bash -c power_off_vm!system-shutdown|\
-Reboot!bash -c reboot_vm!system-reboot|\
-Force Power Off!bash -c force_power_off_vm!process-stop|\
-Reset!bash -c reset_vm!view-refresh|\
-Kill FreeRDP!bash -c kill_xfreerdp!call-stop|\
-Refresh Menu!bash -c refresh_menu!edit-clear-all|\
-Quit!quit!application-exit" >&3
+${MENU_APPLICATIONS}|\
+${MENU_REDMOND}|\
+${MENU_PAUSE}|\
+${MENU_SAVE}|\
+${MENU_POWEROFF}|\
+${MENU_REBOOT}|\
+${MENU_FORCEOFF}|\
+${MENU_RESET}|\
+${MENU_KILL}|\
+${MENU_REFRESH}|\
+${MENU_QUIT}" >&3
     elif [ "${VM_STATE}" = "paused" ]; then
         echo "menu:\
-Resume!bash -c resume_vm!media-playback-start|\
-Save!bash -c save_vm!system-suspend|\
-Power Off!bash -c power_off_vm!system-shutdown|\
-Reboot!bash -c reboot_vm!system-reboot|\
-Force Power Off!bash -c force_power_off_vm!process-stop|\
-Reset!bash -c reset_vm!view-refresh|\
-Kill FreeRDP!bash -c kill_xfreerdp!call-stop|\
-Refresh Menu!bash -c refresh_menu!edit-clear-all|\
-Quit!quit!application-exit" >&3
+${MENU_RESUME}|\
+${MENU_SAVE}|\
+${MENU_POWEROFF}|\
+${MENU_REBOOT}|\
+${MENU_FORCEOFF}|\
+${MENU_RESET}|\
+${MENU_KILL}|\
+${MENU_REFRESH}|\
+${MENU_QUIT}" >&3
     elif [ "${VM_STATE}" = "shut off" ]; then
         echo "menu:\
-Power On!bash -c power_on_vm!gtk-yes|\
-Kill FreeRDP!bash -c kill_xfreerdp!call-stop|\
-Refresh Menu!bash -c refresh_menu!edit-clear-all|\
-Quit!quit!application-exit" >&3
+${MENU_POWERON}|\
+${MENU_KILL}|\
+${MENU_REFRESH}|\
+${MENU_QUIT}" >&3
     fi
 }
 export -f generate_menu
@@ -335,18 +360,6 @@ function refresh_menu() {
 }
 export -f refresh_menu
 
-# Launch Windows
-function launch_windows() {
-    # Print Feedback
-    echo -e "${DEBUG_TEXT}> LAUNCH WINDOWS${RESET_TEXT}"
-    
-    if check_reachable; then
-        # Run FreeRDP
-        winapps windows
-    fi
-}
-export -f launch_windows
-
 ### CHECK DEPENDENCIES ###
 # 'yad'
 if ! command -v yad &> /dev/null; then
@@ -356,7 +369,7 @@ fi
 
 # 'libvirt'
 if ! command -v virsh &> /dev/null; then
-    show_error_message "ERROR: 'libvirt' <u>NOT FOUND</u>.\nPlease ensure 'libvirt' is installed. Exiting."
+    show_error_message "ERROR: 'libvirt' <u>NOT FOUND</u>.\nPlease ensure 'libvirt' is installed."
     exit 1
 fi
 
@@ -369,19 +382,19 @@ yad --notification \
     --listen \
     --no-middle \
     --text="WinApps" \
-    --image="web-microsoft" \
+    --image="./Icons/AppIcon.svg" \
     --command="menu" \
     --menu="\
-Applications!bash -c app_select!window-new|\
-Windows!bash -c launch_windows!web-microsoft|\
-Power On!bash -c power_on_vm!gtk-yes|\
-Pause!bash -c pause_vm!media-playback-pause|\
-Resume!bash -c resume_vm!media-playback-start|\
-Save!bash -c save_vm!system-suspend|\
-Power Off!bash -c power_off_vm!system-shutdown|\
-Reboot!bash -c reboot_vm!system-reboot|\
-Force Power Off!bash -c force_power_off_vm!process-stop|\
-Reset!bash -c reset_vm!view-refresh|\
-Kill FreeRDP!bash -c kill_xfreerdp!call-stop|\
-Refresh Menu!bash -c refresh_menu!edit-clear-all|\
-Quit!quit!application-exit" <&3
+${MENU_APPLICATIONS}|\
+${MENU_REDMOND}|\
+${MENU_POWERON}|\
+${MENU_PAUSE}|\
+${MENU_RESUME}|\
+${MENU_SAVE}|\
+${MENU_POWEROFF}|\
+${MENU_REBOOT}|\
+${MENU_FORCEOFF}|\
+${MENU_RESET}|\
+${MENU_KILL}|\
+${MENU_REFRESH}|\
+${MENU_QUIT}" <&3

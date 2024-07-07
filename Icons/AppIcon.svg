@@ -1,0 +1,15 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
+	<title>Icons</title>
+	<style>
+		.s0 { fill: #fcb041 } 
+		.s1 { fill: #1774bb } 
+		.s2 { fill: #8dc740 } 
+		.s3 { fill: #ee4135 } 
+	</style>
+	<g id="Redmond Big">
+		<path id="Bottom Right" class="s0" d="m404 404h364v364h-364z"/>
+		<path id="Bottom Left" class="s1" d="m0 404h364v364h-364z"/>
+		<path id="Top Right" class="s2" d="m404 0h364v364h-364z"/>
+		<path id="Top Left" class="s3" d="m0 0h364v364h-364z"/>
+	</g>
+</svg>
