@@ -6,8 +6,6 @@
 		.s2 { fill: #8dc740 } 
 		.s3 { fill: #ee4135 } 
 	</style>
-	<g id="Menu Icons">
-	</g>
 	<g id="Application Icons">
 		<g id="AppIcon (Legacy)">
 			<path id="Bottom Right" class="s0" d="m404 404h364v364h-364z"/>

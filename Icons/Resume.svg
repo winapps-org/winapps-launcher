@@ -3,7 +3,9 @@
 	<style>
 		.s0 { fill: #ffffff } 
 	</style>
-	<g id="Resume">
-		<path id="Triangle" class="s0" d="m624 384l-480 277.1v-554.2z"/>
+	<g id="Menu Icons">
+		<g id="Resume">
+			<path id="Triangle" class="s0" d="m624 384l-480 277.1v-554.2z"/>
+		</g>
 	</g>
 </svg>
