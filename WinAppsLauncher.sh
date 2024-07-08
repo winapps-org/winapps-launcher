@@ -23,7 +23,7 @@ export readonly MENU_REDMOND="Windows!bash -c launch_windows!./Icons/Redmond.svg
 export readonly MENU_REFRESH="Refresh Menu!bash -c refresh_menu!./Icons/Refresh.svg"
 export readonly MENU_RESET="Reset!bash -c reset_vm!./Icons/Reset.svg"
 export readonly MENU_RESUME="Resume!bash -c resume_vm!./Icons/Resume.svg"
-export readonly MENU_SAVE="Save!bash -c save_vm!./Icons/Save.svg"
+export readonly MENU_HIBERNATE="Hibernate!bash -c hibernate_vm!./Icons/Hibernate.svg"
 
 ### WORKING DIRECTORY ###
 if cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"; then
@@ -173,7 +173,7 @@ generate_menu() {
 ${MENU_APPLICATIONS}|\
 ${MENU_REDMOND}|\
 ${MENU_PAUSE}|\
-${MENU_SAVE}|\
+${MENU_HIBERNATE}|\
 ${MENU_POWEROFF}|\
 ${MENU_REBOOT}|\
 ${MENU_FORCEOFF}|\
@@ -184,7 +184,7 @@ ${MENU_QUIT}" >&3
     elif [ "${VM_STATE}" = "paused" ]; then
         echo "menu:\
 ${MENU_RESUME}|\
-${MENU_SAVE}|\
+${MENU_HIBERNATE}|\
 ${MENU_POWEROFF}|\
 ${MENU_REBOOT}|\
 ${MENU_FORCEOFF}|\
@@ -337,15 +337,15 @@ function force_power_off_vm() {
 export -f force_power_off_vm
 
 # Save VM
-function save_vm() {
+function hibernate_vm() {
     # Print Feedback
-    echo -e "${DEBUG_TEXT}> SAVE VM${RESET_TEXT}"
+    echo -e "${DEBUG_TEXT}> HIBERNATE VM${RESET_TEXT}"
 
     # Reopen PIPE
     exec 3<> $PIPE
     if pgrep -x $RDP_COMMAND > /dev/null; then
         # FreeRDP Sessions Running
-        show_error_message "ERROR: Saving Windows VM <u>FAILED</u>.\nPlease ensure all FreeRDP instance(s) are terminated."
+        show_error_message "ERROR: Hibernating Windows VM <u>FAILED</u>.\nPlease ensure all FreeRDP instance(s) are terminated."
     else
         # Issue Command
         echo -e "${COMMAND_TEXT}% $(virsh managedsave $VM_NAME | grep -v "^$")${RESET_TEXT}"
@@ -355,7 +355,7 @@ function save_vm() {
         generate_menu
     fi
 }
-export -f save_vm
+export -f hibernate_vm
 
 # Refresh Menu
 function refresh_menu() {
@@ -400,7 +400,7 @@ ${MENU_REDMOND}|\
 ${MENU_POWERON}|\
 ${MENU_PAUSE}|\
 ${MENU_RESUME}|\
-${MENU_SAVE}|\
+${MENU_HIBERNATE}|\
 ${MENU_POWEROFF}|\
 ${MENU_REBOOT}|\
 ${MENU_FORCEOFF}|\
