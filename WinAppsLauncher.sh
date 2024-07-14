@@ -90,6 +90,13 @@ export -f show_error_message
 # Application Selection
 app_select() {
     if check_reachable; then
+        local APP_LIST=()
+
+        # Store the filenames of files containing "${WINAPPS_PATH}/winapps" in an array.
+        # Ignore files named "winapps" and "windows".
+        # Return an empty array if no such files exist.
+        readarray -t APP_LIST < <(find "$WINAPPS_PATH" -maxdepth 1 -type f ! -name "winapps" ! -name "windows" -exec grep -l "${WINAPPS_PATH}/winapps" {} + 2>/dev/null | xargs -I {} basename {})
+
         local selected_app=$(yad --list \
         --title="WinApps Launcher" \
         --width=300 \
@@ -97,7 +104,7 @@ app_select() {
         --text="Select Windows Application to Launch:" \
         --window-icon="./Icons/AppIcon.svg" \
         --column="Application Name" \
-        $(ls $WINAPPS_PATH | grep -v -E "^(winapps|windows)$"))
+        "${APP_LIST[@]}")
 
         if [ -n "${selected_app}" ]; then
             # Remove Trailing Bar
