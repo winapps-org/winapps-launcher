@@ -405,7 +405,7 @@ generate_menu
 yad --notification \
     --listen \
     --no-middle \
-    --text="WinApps" \
+    --text="WinApps Launcher" \
     --image="./Icons/AppIcon.svg" \
     --command="menu" \
     --menu="\
