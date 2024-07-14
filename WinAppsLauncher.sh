@@ -2,7 +2,7 @@
 # ### CONSTANTS ###
 export readonly VM_NAME="RDPWindows" # Virtual Machine Name
 export readonly RDP_COMMAND="xfreerdp" # FreeRDP Command
-export readonly WINAPPS_PATH="/usr/local/bin" # WinApps Install Path
+export readonly WINAPPS_PATH=$(dirname $(which winapps)) # WinApps Install Path
 export readonly SLEEP_DURATION="1.5"
 export readonly ERROR_TEXT="\033[1;31m"
 export readonly DEBUG_TEXT="\033[1;33m"
@@ -106,7 +106,7 @@ app_select() {
             echo -e "${DEBUG_TEXT}> LAUNCH '$selected_app'${RESET_TEXT}"
 
             # Run Selected Application
-            $WINAPPS_PATH/winapps $selected_app
+            winapps $selected_app
         fi
     fi
 }
