@@ -383,6 +383,12 @@ if ! command -v virsh &> /dev/null; then
     exit 2
 fi
 
+# 'winapps'
+if ! command -v winapps &> /dev/null; then
+    show_error_message "ERROR: 'winapps' <u>NOT FOUND</u>.\nPlease ensure 'winapps' is installed."
+    exit 2
+fi
+
 ### INITIALISATION ###
 check_valid_domain
 generate_menu
