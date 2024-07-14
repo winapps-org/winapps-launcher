@@ -1,9 +1,7 @@
-#!/bin/bash
-# ### CONSTANTS ###
-export readonly VM_NAME="RDPWindows" # Virtual Machine Name
-export readonly RDP_COMMAND="xfreerdp" # FreeRDP Command
-export readonly WINAPPS_PATH=$(dirname $(which winapps)) # WinApps Install Path
-export readonly SLEEP_DURATION="1.5"
+#!/usr/bin/env bash
+
+### GLOBAL CONSTANTS ###
+# ANSI Escape Sequences
 export readonly ERROR_TEXT="\033[1;31m"
 export readonly DEBUG_TEXT="\033[1;33m"
 export readonly STATUS_TEXT="\033[1;32m"
@@ -11,19 +9,32 @@ export readonly ADDRESS_TEXT="\033[1;34m"
 export readonly COMMAND_TEXT="\033[0;37m"
 export readonly PATH_TEXT="\033[1;35m"
 export readonly RESET_TEXT="\033[0m"
-export readonly MENU_APPLICATIONS="Applications!bash -c app_select!./Icons/Applications.svg"
-export readonly MENU_FORCEOFF="Force Power Off!bash -c force_power_off_vm!./Icons/ForceOff.svg"
-export readonly MENU_KILL="Kill FreeRDP!bash -c kill_xfreerdp!./Icons/Kill.svg"
-export readonly MENU_PAUSE="Pause!bash -c pause_vm!./Icons/Pause.svg"
-export readonly MENU_POWEROFF="Power Off!bash -c power_off_vm!./Icons/Power.svg"
-export readonly MENU_POWERON="Power On!bash -c power_on_vm!./Icons/Power.svg"
-export readonly MENU_QUIT="Quit!quit!./Icons/Quit.svg"
-export readonly MENU_REBOOT="Reboot!bash -c reboot_vm!./Icons/Reboot.svg"
-export readonly MENU_REDMOND="Windows!bash -c launch_windows!./Icons/Redmond.svg"
-export readonly MENU_REFRESH="Refresh Menu!bash -c refresh_menu!./Icons/Refresh.svg"
-export readonly MENU_RESET="Reset!bash -c reset_vm!./Icons/Reset.svg"
-export readonly MENU_RESUME="Resume!bash -c resume_vm!./Icons/Resume.svg"
-export readonly MENU_HIBERNATE="Hibernate!bash -c hibernate_vm!./Icons/Hibernate.svg"
+
+# Paths
+export readonly ICONS_PATH="./Icons"
+
+# Menu Entries
+export readonly MENU_APPLICATIONS="Applications!bash -c app_select!${ICONS_PATH}/Applications.svg"
+export readonly MENU_FORCEOFF="Force Power Off!bash -c force_power_off_vm!${ICONS_PATH}/ForceOff.svg"
+export readonly MENU_KILL="Kill FreeRDP!bash -c kill_xfreerdp!${ICONS_PATH}/Kill.svg"
+export readonly MENU_PAUSE="Pause!bash -c pause_vm!${ICONS_PATH}/Pause.svg"
+export readonly MENU_POWEROFF="Power Off!bash -c power_off_vm!${ICONS_PATH}/Power.svg"
+export readonly MENU_POWERON="Power On!bash -c power_on_vm!${ICONS_PATH}/Power.svg"
+export readonly MENU_QUIT="Quit!quit!${ICONS_PATH}/Quit.svg"
+export readonly MENU_REBOOT="Reboot!bash -c reboot_vm!${ICONS_PATH}/Reboot.svg"
+export readonly MENU_REDMOND="Windows!bash -c launch_windows!${ICONS_PATH}/Redmond.svg"
+export readonly MENU_REFRESH="Refresh Menu!bash -c refresh_menu!${ICONS_PATH}/Refresh.svg"
+export readonly MENU_RESET="Reset!bash -c reset_vm!${ICONS_PATH}/Reset.svg"
+export readonly MENU_RESUME="Resume!bash -c resume_vm!${ICONS_PATH}/Resume.svg"
+export readonly MENU_HIBERNATE="Hibernate!bash -c hibernate_vm!${ICONS_PATH}/Hibernate.svg"
+
+# Other
+export readonly VM_NAME="RDPWindows"
+export readonly RDP_COMMAND="xfreerdp"
+export readonly SLEEP_DURATION="1.5"
+
+### GLOBAL VARIABLES ###
+export WINAPPS_PATH=""    # Generated programmatically following dependency checks.
 
 ### WORKING DIRECTORY ###
 if cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"; then
@@ -102,7 +113,7 @@ app_select() {
         --width=300 \
         --height=500 \
         --text="Select Windows Application to Launch:" \
-        --window-icon="./Icons/AppIcon.svg" \
+        --window-icon="${ICONS_PATH}/AppIcon.svg" \
         --column="Application Name" \
         "${APP_LIST[@]}")
 
@@ -395,6 +406,8 @@ fi
 if ! command -v winapps &> /dev/null; then
     show_error_message "ERROR: 'winapps' <u>NOT FOUND</u>.\nPlease ensure 'winapps' is installed."
     exit 2
+else
+    WINAPPS_PATH=$(dirname $(which winapps))
 fi
 
 ### INITIALISATION ###
@@ -406,7 +419,7 @@ yad --notification \
     --listen \
     --no-middle \
     --text="WinApps Launcher" \
-    --image="./Icons/AppIcon.svg" \
+    --image="${ICONS_PATH}/AppIcon.svg" \
     --command="menu" \
     --menu="\
 ${MENU_APPLICATIONS}|\
