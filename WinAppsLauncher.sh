@@ -78,7 +78,7 @@ show_error_message() {
         --borders=15 \
         --window-icon=dialog-error \
         --selectable-labels \
-        --title="WinApps" \
+        --title="WinApps Launcher" \
         --image=dialog-error \
         --text="$message" \
         --button=yad-ok:0 \
@@ -91,10 +91,11 @@ export -f show_error_message
 app_select() {
     if check_reachable; then
         local selected_app=$(yad --list \
-        --title="WinApps" \
+        --title="WinApps Launcher" \
         --width=300 \
         --height=500 \
         --text="Select Windows Application to Launch:" \
+        --window-icon="./Icons/AppIcon.svg" \
         --column="Application Name" \
         $(ls $WINAPPS_PATH | grep -v -E "^(winapps|windows)$"))
 
