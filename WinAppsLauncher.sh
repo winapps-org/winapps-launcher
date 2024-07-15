@@ -105,6 +105,7 @@ app_select() {
     if check_reachable; then
         local ALL_FILES=()
         local APP_LIST=()
+        local SORTED_APP_LIST=()
         local SELECTED_APP=""
         
         # Store the paths of all files within the directory 'WINAPPS_PATH'.
@@ -119,6 +120,10 @@ app_select() {
             fi
         done
 
+        # Sort applications in alphabetical order.
+        SORTED_APP_LIST=($(for i in "${APP_LIST[@]}"; do echo "$i"; done | sort))
+
+        # Display application selection popup window.
         SELECTED_APP=$(yad --list \
         --title="WinApps Launcher" \
         --width=300 \
@@ -126,7 +131,7 @@ app_select() {
         --text="Select Windows Application to Launch:" \
         --window-icon="${ICONS_PATH}/AppIcon.svg" \
         --column="Application Name" \
-        "${APP_LIST[@]}")
+        "${SORTED_APP_LIST[@]}")
 
         if [ -n "$SELECTED_APP" ]; then
             # Remove Trailing Bar
