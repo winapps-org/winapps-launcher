@@ -38,7 +38,7 @@ declare -rx MENU_REDMOND="Windows!bash -c launch_windows!${ICONS_PATH}/Redmond.s
 declare -rx MENU_REFRESH="Refresh Menu!bash -c refresh_menu!${ICONS_PATH}/Refresh.svg"
 declare -rx MENU_RESET="Reset!bash -c reset_windows!${ICONS_PATH}/Reset.svg"
 declare -rx MENU_RESUME="Resume!bash -c resume_windows!${ICONS_PATH}/Resume.svg"
-declare -rx MENU_HIBERNATE="Hibernate!bash -c hibernate_vm!${ICONS_PATH}/Hibernate.svg"
+declare -rx MENU_HIBERNATE="Hibernate!bash -c hibernate_windows!${ICONS_PATH}/Hibernate.svg"
 
 # Other
 declare -rx VM_NAME="RDPWindows"
@@ -590,7 +590,7 @@ function force_stop_windows() {
 export -f force_stop_windows
 
 # Hibernate Windows
-function hibernate_vm() {
+function hibernate_windows() {
     if pgrep -x "$FREERDP_COMMAND" > /dev/null; then
         # FreeRDP Sessions Running
         show_error_message "ERROR: Hibernating Windows VM <u>FAILED</u>.\nPlease ensure all FreeRDP instance(s) are terminated."
@@ -614,18 +614,18 @@ function hibernate_vm() {
         fi
     fi
 }
-export -f hibernate_vm
+export -f hibernate_windows
 
 # Refresh Menu
 function refresh_menu() {
-    # Print Feedback
-    echo -e "${DEBUG_TEXT}> REFRESH MENU${RESET_TEXT}"
-
     # Reopen PIPE
     exec 3<> "$PIPE"
 
     # Refresh Menu
     generate_menu
+
+    # Print Feedback
+    echo -e "${DEBUG_TEXT}> REFRESHED MENU${RESET_TEXT}"
 }
 export -f refresh_menu
 
