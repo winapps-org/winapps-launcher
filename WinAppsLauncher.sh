@@ -55,7 +55,7 @@ declare -x WAFLAVOR=""     # As specified within the WinApps configuration file.
 
 # Check WinApps Configuration File Exists
 function check_config_exists() {
-    if [[ ! -f $CONFIG_FILE ]]; then
+    if [[ ! -f "$CONFIG_FILE" ]]; then
         # Throw an error.
         show_error_message "ERROR: WinApps configuration file <u>NOT FOUND</u>.\nPlease ensure <i>${CONFIG_FILE}</i> exists."
         exit "$EC_NO_WACONFIG"
@@ -67,7 +67,7 @@ function freerdp_command_detection() {
     # Read the WinApps configuration file line by line.
     while IFS= read -r LINE; do
         # Check if the line begins with 'FREERDP_COMMAND='.
-        if [[ $LINE == FREERDP_COMMAND=\"* ]]; then
+        if [[ "$LINE" == FREERDP_COMMAND=\"* ]]; then
             # Extract the value.
             FREERDP_COMMAND=$(echo "$LINE" | sed -n '/^FREERDP_COMMAND="/s/^FREERDP_COMMAND="\([^"]*\)".*/\1/p')
             echo -e "${DEBUG_TEXT}> USING BACKEND '${FREERDP_COMMAND}'${RESET_TEXT}"
@@ -81,13 +81,13 @@ function freerdp_command_detection() {
         if command -v xfreerdp &>/dev/null; then
             # Check FreeRDP major version is 3 or greater.
             FREERDP_MAJOR_VERSION=$(xfreerdp --version | head -n 1 | grep -o -m 1 '\b[0-9]\S*' | head -n 1 | cut -d'.' -f1)
-            if [[ $FREERDP_MAJOR_VERSION =~ ^[0-9]+$ ]] && ((FREERDP_MAJOR_VERSION >= 3)); then
+            if [[ "$FREERDP_MAJOR_VERSION" =~ ^[0-9]+$ ]] && ((FREERDP_MAJOR_VERSION >= 3)); then
                 FREERDP_COMMAND="xfreerdp"
             fi
         elif command -v xfreerdp3 &>/dev/null; then
             # Check FreeRDP major version is 3 or greater.
             FREERDP_MAJOR_VERSION=$(xfreerdp3 --version | head -n 1 | grep -o -m 1 '\b[0-9]\S*' | head -n 1 | cut -d'.' -f1)
-            if [[ $FREERDP_MAJOR_VERSION =~ ^[0-9]+$ ]] && ((FREERDP_MAJOR_VERSION >= 3)); then
+            if [[ "$FREERDP_MAJOR_VERSION" =~ ^[0-9]+$ ]] && ((FREERDP_MAJOR_VERSION >= 3)); then
                 FREERDP_COMMAND="xfreerdp3"
             fi
         fi
@@ -98,7 +98,7 @@ function freerdp_command_detection() {
                 if flatpak list --columns=application | grep -q "^com.freerdp.FreeRDP$"; then
                     # Check FreeRDP major version is 3 or greater.
                     FREERDP_MAJOR_VERSION=$(flatpak list --columns=application,version | grep "^com.freerdp.FreeRDP" | awk '{print $2}' | cut -d'.' -f1)
-                    if [[ $FREERDP_MAJOR_VERSION =~ ^[0-9]+$ ]] && ((FREERDP_MAJOR_VERSION >= 3)); then
+                    if [[ "$FREERDP_MAJOR_VERSION" =~ ^[0-9]+$ ]] && ((FREERDP_MAJOR_VERSION >= 3)); then
                         FREERDP_COMMAND="flatpak run --command=xfreerdp com.freerdp.FreeRDP"
                     fi
                 fi
@@ -122,7 +122,7 @@ function winapps_flavor_detection() {
     # Read the WinApps configuration file line by line.
     while IFS= read -r LINE; do
         # Check if the line begins with 'WAFLAVOR='.
-        if [[ $LINE == WAFLAVOR=\"* ]]; then
+        if [[ "$LINE" == WAFLAVOR=\"* ]]; then
             # Extract the value.
             WAFLAVOR=$(echo "$LINE" | sed -n '/^WAFLAVOR="/s/^WAFLAVOR="\([^"]*\)".*/\1/p')
             echo -e "${DEBUG_TEXT}> USING BACKEND '${WAFLAVOR}'${RESET_TEXT}"
@@ -130,7 +130,7 @@ function winapps_flavor_detection() {
         fi
     done < "$CONFIG_FILE"
 
-    if [[ -z $WAFLAVOR ]]; then
+    if [[ -z "$WAFLAVOR" ]]; then
         # Use the default WinApps flavor if it was not specified.
         WAFLAVOR="$DEFAULT_FLAVOR"
         echo -e "${DEBUG_TEXT}> USING DEFAULT BACKEND '${WAFLAVOR}'${RESET_TEXT}"
@@ -289,7 +289,7 @@ export -f check_windows_exists
 # Check Reachable
 check_reachable() {
     # Only bother checking if Windows is reachable when using 'libvirt'.
-    if [[ $WAFLAVOR == "libvirt" ]]; then
+    if [[ "$WAFLAVOR" == "libvirt" ]]; then
         #VM_IP=$(virsh net-dhcp-leases default | grep "${VM_NAME}" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}') # Unreliable since this does not always list VM
         # shellcheck disable=SC2155 # Silence warning regarding declaring and assigning variables separately.
         local VM_MAC=$(virsh domiflist "$VM_NAME" | grep -Eo '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})') # Virtual Machine MAC Address
@@ -314,44 +314,44 @@ generate_menu() {
     local STATE=""
 
     # Check Windows State
-    if [[ $WAFLAVOR == "libvirt" ]]; then
+    if [[ "$WAFLAVOR" == "libvirt" ]]; then
         # Possible values are 'running', 'paused' and 'shut off'.
         STATE=$(virsh domstate "$VM_NAME" 2>&1 | xargs)
 
         # Map state to standard terminology.
-        if [[ $STATE == "running" ]]; then
+        if [[ "$STATE" == "running" ]]; then
             STATE="ON"
-        elif [[ $STATE == "paused" ]]; then
+        elif [[ "$STATE" == "paused" ]]; then
             STATE="PAUSED"
-        elif [[ $STATE == "shut off" ]]; then
+        elif [[ "$STATE" == "shut off" ]]; then
             STATE="OFF"
         fi
-    elif [[ $WAFLAVOR == "podman" ]]; then
-        # Possible values are 'created', 'up', 'paused' and 'exited'.
+    elif [[ "$WAFLAVOR" == "podman" ]]; then
+        # Possible values are 'created', 'up', 'paused', 'stopping' and 'exited'.
         STATE=$(podman ps --all --filter name="$CONTAINER_NAME" --format '{{.Status}}')
         STATE=${STATE,,} # Convert the string to lowercase.
         STATE=${STATE%% *} # Extract the first word.
 
         # Map state to standard terminology.
-        if [[ $STATE == "up" ]]; then
+        if [[ "$STATE" == "up" ]] || [[ "$STATE" == "stopping" ]]; then
             STATE="ON"
-        elif [[ $STATE == "paused" ]]; then
+        elif [[ "$STATE" == "paused" ]]; then
             STATE="PAUSED"
-        elif [[ $STATE == "exited" ]] || [[ $STATE == "created" ]]; then
+        elif [[ "$STATE" == "exited" ]] || [[ "$STATE" == "created" ]]; then
             STATE="OFF"
         fi
-    elif [[ $WAFLAVOR == "docker" ]]; then
+    elif [[ "$WAFLAVOR" == "docker" ]]; then
         # Possible values are 'created', 'restarting', 'up', 'paused' and 'exited'.
         STATE=$(docker ps --all --filter name="$CONTAINER_NAME" --format '{{.Status}}')
         STATE=${STATE,,} # Convert the string to lowercase.
         STATE=${STATE%% *} # Extract the first word.
 
         # Map state to standard terminology.
-        if [[ $STATE == "up" ]] || [[ $STATE == "restarting" ]]; then
+        if [[ "$STATE" == "up" ]] || [[ "$STATE" == "restarting" ]]; then
             STATE="ON"
-        elif [[ $STATE == "paused" ]]; then
+        elif [[ "$STATE" == "paused" ]]; then
             STATE="PAUSED"
-        elif [[ $STATE == "exited" ]] || [[ $STATE == "created" ]]; then
+        elif [[ "$STATE" == "exited" ]] || [[ "$STATE" == "created" ]]; then
             STATE="OFF"
         fi
     fi
@@ -359,7 +359,7 @@ generate_menu() {
     # Print Feedback
     echo -e "${STATUS_TEXT}* VM STATE: ${STATE}${RESET_TEXT}"
 
-    case $STATE in
+    case "$STATE" in
         "ON")
             echo "menu:\
 ${MENU_APPLICATIONS}|\
