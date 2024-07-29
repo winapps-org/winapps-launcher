@@ -16,11 +16,10 @@ declare -rx EC_NO_WACONFIG=3
 declare -rx EC_BAD_BACKEND=4
 declare -rx EC_WIN_NOT_SPEC=5
 declare -rx EC_NO_WIN_FOUND=6
-declare -rx EC_NO_FREERDP=7
-declare -rx EC_BAD_FREERDP=8
 
 # Paths
 declare -rx ICONS_PATH="./Icons"
+declare -rx APPDATA_PATH="${HOME}/.local/share/winapps"
 declare -rx CONFIG_PATH="${HOME}/.config/winapps"
 declare -rx CONFIG_FILE="${CONFIG_PATH}/winapps.conf"
 declare -rx COMPOSE_FILE="${CONFIG_PATH}/compose.yaml"
@@ -44,76 +43,18 @@ declare -rx MENU_HIBERNATE="Hibernate!bash -c hibernate_windows!${ICONS_PATH}/Hi
 declare -rx VM_NAME="RDPWindows"
 declare -rx CONTAINER_NAME="WinApps"
 declare -rx DEFAULT_FLAVOR="docker"
-declare -rx SLEEP_DURATION="1.5"
 
 ### GLOBAL VARIABLES ###
-declare -x FREERDP_COMMAND=""
 declare -x WINAPPS_PATH="" # Generated programmatically following dependency checks.
 declare -x WAFLAVOR=""     # As specified within the WinApps configuration file.
 
 ### FUNCTIONS ###
-
 # Check WinApps Configuration File Exists
 function check_config_exists() {
     if [[ ! -f "$CONFIG_FILE" ]]; then
         # Throw an error.
         show_error_message "ERROR: WinApps configuration file <u>NOT FOUND</u>.\nPlease ensure <i>${CONFIG_FILE}</i> exists."
         exit "$EC_NO_WACONFIG"
-    fi
-}
-
-# FreeRDP Command Detection
-function freerdp_command_detection() {
-    # Read the WinApps configuration file line by line.
-    while IFS= read -r LINE; do
-        # Check if the line begins with 'FREERDP_COMMAND='.
-        if [[ "$LINE" == FREERDP_COMMAND=\"* ]]; then
-            # Extract the value.
-            FREERDP_COMMAND=$(echo "$LINE" | sed -n '/^FREERDP_COMMAND="/s/^FREERDP_COMMAND="\([^"]*\)".*/\1/p')
-            echo -e "${DEBUG_TEXT}> USING BACKEND '${FREERDP_COMMAND}'${RESET_TEXT}"
-            break
-        fi
-    done < "$CONFIG_FILE"
-
-    # Attempt to set a FreeRDP command if the variable is empty.
-    if [ -z "$FREERDP_COMMAND" ]; then
-        # Check common commands used to launch FreeRDP.
-        if command -v xfreerdp &>/dev/null; then
-            # Check FreeRDP major version is 3 or greater.
-            FREERDP_MAJOR_VERSION=$(xfreerdp --version | head -n 1 | grep -o -m 1 '\b[0-9]\S*' | head -n 1 | cut -d'.' -f1)
-            if [[ "$FREERDP_MAJOR_VERSION" =~ ^[0-9]+$ ]] && ((FREERDP_MAJOR_VERSION >= 3)); then
-                FREERDP_COMMAND="xfreerdp"
-            fi
-        elif command -v xfreerdp3 &>/dev/null; then
-            # Check FreeRDP major version is 3 or greater.
-            FREERDP_MAJOR_VERSION=$(xfreerdp3 --version | head -n 1 | grep -o -m 1 '\b[0-9]\S*' | head -n 1 | cut -d'.' -f1)
-            if [[ "$FREERDP_MAJOR_VERSION" =~ ^[0-9]+$ ]] && ((FREERDP_MAJOR_VERSION >= 3)); then
-                FREERDP_COMMAND="xfreerdp3"
-            fi
-        fi
-
-        # Check for FreeRDP flatpak as a fallback option.
-        if [ -z "$FREERDP_COMMAND" ]; then
-            if command -v flatpak &>/dev/null; then
-                if flatpak list --columns=application | grep -q "^com.freerdp.FreeRDP$"; then
-                    # Check FreeRDP major version is 3 or greater.
-                    FREERDP_MAJOR_VERSION=$(flatpak list --columns=application,version | grep "^com.freerdp.FreeRDP" | awk '{print $2}' | cut -d'.' -f1)
-                    if [[ "$FREERDP_MAJOR_VERSION" =~ ^[0-9]+$ ]] && ((FREERDP_MAJOR_VERSION >= 3)); then
-                        FREERDP_COMMAND="flatpak run --command=xfreerdp com.freerdp.FreeRDP"
-                    fi
-                fi
-            fi
-        fi
-    fi
-
-    if [ -z "$FREERDP_COMMAND" ]; then
-        # Throw an error.
-        show_error_message "ERROR: FreeRDP <u>NOT FOUND</u>.\nPlease ensure FreeRDP version 3 or greater is installed on your system."
-        exit "$EC_NO_FREERDP"
-    elif ! command -v "$FREERDP_COMMAND" &>/dev/null && [ "$FREERDP_COMMAND" != "flatpak run --command=xfreerdp com.freerdp.FreeRDP" ]; then
-        # Throw an error.
-        show_error_message "ERROR: FreeRDP command '${FREERDP_COMMAND}' <u>INVALID</u>.\nPlease specify a valid FreeRDP (version 3 or greater) command in <i>${CONFIG_FILE}</i>."
-        exit "$EC_BAD_FREERDP"
     fi
 }
 
@@ -155,31 +96,60 @@ function on_exit() {
 }
 trap on_exit EXIT
 
-# Kill FreeRDP
-kill_freerdp() {
-    if [[ "$FREERDP_COMMAND" != "flatpak run --command=xfreerdp com.freerdp.FreeRDP" ]]; then
-        # Find all FreeRDP processes
-        # shellcheck disable=SC2155 # Silence warning regarding declaring and assigning variables separately.
-        local PIDS=$(pgrep "$FREERDP_COMMAND")
-
-        # Check if any processes were found
-        if [ -n "$PIDS" ]; then
-            pkill -9 "$FREERDP_COMMAND" &>/dev/null && \
-            echo -e "${DEBUG_TEXT}> KILLED FREERDP${RESET_TEXT}" && \
-            show_error_message "<u>KILLED</u> FreeRDP (${FREERDP_COMMAND}) process(es): ${PIDS}."
-        fi
+# Check FreeRDP Running
+function check_freerdp_running() {
+    if find "${APPDATA_PATH}" -maxdepth 1 -name 'FreeRDP_Process_*.cproc' -print -quit | grep -q .; then
+        echo "YES"
     else
-        if flatpak ps | grep -q "com.freerdp.FreeRDP"; then
-            flatpak kill com.freerdp.FreeRDP &>/dev/null && \
-            echo -e "${DEBUG_TEXT}> KILLED FREERDP${RESET_TEXT}" && \
-            show_error_message "<u>KILLED</u> FreeRDP Flatpak (com.freerdp.FreeRDP)."
-        fi
+        echo "NO"
     fi
+}
+export -f check_freerdp_running
+
+# Kill FreeRDP
+function kill_freerdp() {
+    # Declare variables.
+    local TERMINATED_PROCESS_IDS=()
+    local TERMINATED_PROCESS_IDS_STRING=""
+
+    # Loop through each matching file and add to the array
+    for FREERDP_PROCESS_FILE in "${APPDATA_PATH}/FreeRDP_Process_"*.cproc; do
+        # This check ensures the pattern is not treated as a literal string if no files match the pattern.
+        if [ -f "$FREERDP_PROCESS_FILE" ]; then
+            # Extract the file name from the path.
+            FREERDP_PROCESS_FILE=$(basename "$FREERDP_PROCESS_FILE")
+
+            # Remove the 'FreeRDP_Process_' prefix.
+            FREERDP_PROCESS_FILE="${FREERDP_PROCESS_FILE#FreeRDP_Process_}"
+
+            # Remove the '.cproc' file extension.
+            FREERDP_PROCESS_FILE="${FREERDP_PROCESS_FILE%.cproc}"
+
+            # Gracefully terminate the process (SIGTERM).
+            kill -15 "$FREERDP_PROCESS_FILE" &>/dev/null
+
+            # Remove the file.
+            # NOTE: This is not necessary as 'bin/winapps' will automatically delete the file once the process terminates.
+            #rm "${APPDATA_PATH}/FreeRDP_Process_${FREERDP_PROCESS_FILE}.cproc" &>/dev/null
+
+            # Print debug feedback.
+            echo -e "${DEBUG_TEXT}> KILLED FREERDP PROCESS '${FREERDP_PROCESS_FILE}'${RESET_TEXT}"
+
+            # Add the process ID to the list of terminated processes.
+            TERMINATED_PROCESS_IDS+=("$FREERDP_PROCESS_FILE")
+        fi
+    done
+
+    # Convert the array of process IDs to a comma-delimited string.
+    TERMINATED_PROCESS_IDS_STRING=$(printf "%s, " "${TERMINATED_PROCESS_IDS[@]}" | sed 's/, $//')
+
+    # Display feedback if any processes were terminated.
+    [ ${#TERMINATED_PROCESS_IDS[@]} -ne 0 ] && show_error_message "<u>KILLED</u> FreeRDP process(es): ${TERMINATED_PROCESS_IDS_STRING}."
 }
 export -f kill_freerdp
 
 # Error Message
-show_error_message() {
+function show_error_message() {
     local MESSAGE="${1}"
 
     yad --error \
@@ -199,7 +169,7 @@ show_error_message() {
 export -f show_error_message
 
 # Application Selection
-app_select() {
+function app_select() {
     if check_reachable; then
         local ALL_FILES=()
         local APP_LIST=()
@@ -255,7 +225,7 @@ function launch_windows() {
 export -f launch_windows
 
 # Check Windows Exists
-check_windows_exists() {
+function check_windows_exists() {
     if [[ $WAFLAVOR == "libvirt" ]]; then
         # Check Virtual Machine State
         local WINSTATE=""
@@ -287,14 +257,14 @@ check_windows_exists() {
 export -f check_windows_exists
 
 # Check Reachable
-check_reachable() {
+function check_reachable() {
     # Only bother checking if Windows is reachable when using 'libvirt'.
     if [[ "$WAFLAVOR" == "libvirt" ]]; then
         #VM_IP=$(virsh net-dhcp-leases default | grep "${VM_NAME}" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}') # Unreliable since this does not always list VM
         # shellcheck disable=SC2155 # Silence warning regarding declaring and assigning variables separately.
         local VM_MAC=$(virsh domiflist "$VM_NAME" | grep -Eo '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})') # Virtual Machine MAC Address
         # shellcheck disable=SC2155 # Silence warning regarding declaring and assigning variables separately.
-        local VM_IP=$(arp -n | grep "$VM_MAC" | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}") # Virtual Machine IP Address
+        local VM_IP=$(ip neigh show | grep "$VM_MAC" | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}") # Virtual Machine IP Address
 
         if [ -z "$VM_IP" ]; then
             # Empty
@@ -310,7 +280,7 @@ check_reachable() {
 }
 export -f check_reachable
 
-generate_menu() {
+function generate_menu() {
     local STATE=""
 
     # Check Windows State
@@ -401,18 +371,18 @@ export -f generate_menu
 function start_windows() {
     # Issue Command
     if [[ "$WAFLAVOR" == "libvirt" ]]; then
-        virsh start "$VM_NAME" &>/dev/null && \
+        virsh start "$VM_NAME" &>/dev/null &
+        wait $!
         echo -e "${DEBUG_TEXT}> STARTED '${VM_NAME}'${RESET_TEXT}"
     elif [[ "$WAFLAVOR" == "podman" ]]; then
-        podman-compose --file "$COMPOSE_FILE" start &>/dev/null && \
+        podman-compose --file "$COMPOSE_FILE" start &>/dev/null &
+        wait $!
         echo -e "${DEBUG_TEXT}> STARTED '${CONTAINER_NAME}'${RESET_TEXT}"
     elif [[ "$WAFLAVOR" == "docker" ]]; then
-        docker compose --file "$COMPOSE_FILE" start &>/dev/null && \
+        docker compose --file "$COMPOSE_FILE" start &>/dev/null &
+        wait $!
         echo -e "${DEBUG_TEXT}> STARTED '${CONTAINER_NAME}'${RESET_TEXT}"
     fi
-
-    # Sleep
-    sleep "$SLEEP_DURATION"
 
     # Reopen PIPE
     exec 3<> "$PIPE"
@@ -424,24 +394,24 @@ export -f start_windows
 
 # Stop Windows
 function stop_windows() {
-    if pgrep -x "$FREERDP_COMMAND" > /dev/null; then
+    if [[ "$(check_freerdp_running)" == "YES" ]]; then
         # FreeRDP Sessions Running
         show_error_message "ERROR: Powering Off Windows VM <u>FAILED</u>.\nPlease ensure all FreeRDP instance(s) are terminated."
     else
         # Issue Command
         if [[ "$WAFLAVOR" == "libvirt" ]]; then
-            virsh shutdown "$VM_NAME" &>/dev/null && \
+            virsh shutdown "$VM_NAME" &>/dev/null &
+            wait $!
             echo -e "${DEBUG_TEXT}> POWERED OFF '${VM_NAME}'${RESET_TEXT}"
         elif [[ "$WAFLAVOR" == "podman" ]]; then
-            podman-compose --file "$COMPOSE_FILE" stop &>/dev/null && \
+            podman-compose --file "$COMPOSE_FILE" stop &>/dev/null &
+            wait $!
             echo -e "${DEBUG_TEXT}> POWERED OFF '${CONTAINER_NAME}'${RESET_TEXT}"
         elif [[ "$WAFLAVOR" == "docker" ]]; then
-            docker compose --file "$COMPOSE_FILE" stop &>/dev/null && \
+            docker compose --file "$COMPOSE_FILE" stop &>/dev/null &
+            wait $!
             echo -e "${DEBUG_TEXT}> POWERED OFF '${CONTAINER_NAME}'${RESET_TEXT}"
         fi
-
-        # Sleep
-        sleep "$SLEEP_DURATION"
 
         # Reopen PIPE
         exec 3<> "$PIPE"
@@ -454,24 +424,24 @@ export -f stop_windows
 
 # Pause Windows
 function pause_windows() {
-    if pgrep -x "$FREERDP_COMMAND" > /dev/null; then
+    if [[ "$(check_freerdp_running)" == "YES" ]]; then
         # FreeRDP Sessions Running
         show_error_message "ERROR: Pausing Windows VM <u>FAILED</u>.\nPlease ensure all FreeRDP instance(s) are terminated."
     else
         # Issue Command
         if [[ "$WAFLAVOR" == "libvirt" ]]; then
-            virsh suspend "$VM_NAME" &>/dev/null && \
+            virsh suspend "$VM_NAME" &>/dev/null &
+            wait $!
             echo -e "${DEBUG_TEXT}> PAUSED '${VM_NAME}'${RESET_TEXT}"
         elif [[ "$WAFLAVOR" == "podman" ]]; then
-            podman-compose --file "$COMPOSE_FILE" pause &>/dev/null && \
+            podman-compose --file "$COMPOSE_FILE" pause &>/dev/null &
+            wait $!
             echo -e "${DEBUG_TEXT}> PAUSED '${CONTAINER_NAME}'${RESET_TEXT}"
         elif [[ "$WAFLAVOR" == "docker" ]]; then
-            docker compose --file "$COMPOSE_FILE" pause &>/dev/null && \
+            docker compose --file "$COMPOSE_FILE" pause &>/dev/null &
+            wait $!
             echo -e "${DEBUG_TEXT}> PAUSED '${CONTAINER_NAME}'${RESET_TEXT}"
         fi
-
-        # Sleep
-        sleep "$SLEEP_DURATION"
 
         # Reopen PIPE
         exec 3<> "$PIPE"
@@ -486,18 +456,18 @@ export -f pause_windows
 function resume_windows() {
     # Issue Command
     if [[ "$WAFLAVOR" == "libvirt" ]]; then
-        virsh resume "$VM_NAME" &>/dev/null && \
+        virsh resume "$VM_NAME" &>/dev/null &
+        wait $!
         echo -e "${DEBUG_TEXT}> RESUMED '${VM_NAME}'${RESET_TEXT}"        
     elif [[ "$WAFLAVOR" == "podman" ]]; then
-        podman-compose --file "$COMPOSE_FILE" unpause &>/dev/null && \
+        podman-compose --file "$COMPOSE_FILE" unpause &>/dev/null &
+        wait $!
         echo -e "${DEBUG_TEXT}> RESUMED '${CONTAINER_NAME}'${RESET_TEXT}"
     elif [[ "$WAFLAVOR" == "docker" ]]; then
-        docker compose --file "$COMPOSE_FILE" unpause &>/dev/null && \
+        docker compose --file "$COMPOSE_FILE" unpause &>/dev/null &
+        wait $!
         echo -e "${DEBUG_TEXT}> RESUMED '${CONTAINER_NAME}'${RESET_TEXT}"
     fi
-
-    # Sleep
-    sleep "$SLEEP_DURATION"
 
     # Reopen PIPE
     exec 3<> "$PIPE"
@@ -511,20 +481,22 @@ export -f resume_windows
 function reset_windows() {
     # Issue Command
     if [[ "$WAFLAVOR" == "libvirt" ]]; then
-        virsh reset "$VM_NAME" &>/dev/null && \
+        virsh reset "$VM_NAME" &>/dev/null &
+        wait $!
         echo -e "${DEBUG_TEXT}> RESET '${VM_NAME}'${RESET_TEXT}"
     elif [[ "$WAFLAVOR" == "podman" ]]; then
-        podman-compose --file "$COMPOSE_FILE" kill &>/dev/null && \
-        podman-compose --file "$COMPOSE_FILE" start &>/dev/null && \
+        podman-compose --file "$COMPOSE_FILE" kill &>/dev/null &
+        wait $!
+        podman-compose --file "$COMPOSE_FILE" start &>/dev/null &
+        wait $!
         echo -e "${DEBUG_TEXT}> RESET '${CONTAINER_NAME}'${RESET_TEXT}"
     elif [[ "$WAFLAVOR" == "docker" ]]; then
-        docker compose --file "$COMPOSE_FILE" kill &>/dev/null && \
-        docker compose --file "$COMPOSE_FILE" start &>/dev/null && \
+        docker compose --file "$COMPOSE_FILE" kill &>/dev/null &
+        wait $!
+        docker compose --file "$COMPOSE_FILE" start &>/dev/null &
+        wait $!
         echo -e "${DEBUG_TEXT}> RESET '${CONTAINER_NAME}'${RESET_TEXT}"
     fi
-
-    # Sleep
-    sleep "$SLEEP_DURATION"
 
     # Reopen PIPE
     exec 3<> "$PIPE"
@@ -536,24 +508,24 @@ export -f reset_windows
 
 # Reboot Windows
 function reboot_windows() {
-    if pgrep -x "$FREERDP_COMMAND" > /dev/null; then
+    if [[ "$(check_freerdp_running)" == "YES" ]]; then
         # FreeRDP Sessions Running
         show_error_message "ERROR: Rebooting Windows VM <u>FAILED</u>.\nPlease ensure all FreeRDP instance(s) are terminated."
     else
         # Issue Command
         if [[ "$WAFLAVOR" == "libvirt" ]]; then
-            virsh reboot "$VM_NAME" &>/dev/null && \
+            virsh reboot "$VM_NAME" &>/dev/null &
+            wait $!
             echo -e "${DEBUG_TEXT}> RESTARTED '${VM_NAME}'${RESET_TEXT}"
         elif [[ "$WAFLAVOR" == "podman" ]]; then
-            podman-compose --file "$COMPOSE_FILE" restart &>/dev/null && \
+            podman-compose --file "$COMPOSE_FILE" restart &>/dev/null &
+            wait $!
             echo -e "${DEBUG_TEXT}> RESTARTED '${CONTAINER_NAME}'${RESET_TEXT}"
         elif [[ "$WAFLAVOR" == "docker" ]]; then
-            docker compose --file "$COMPOSE_FILE" restart &>/dev/null && \
+            docker compose --file "$COMPOSE_FILE" restart &>/dev/null &
+            wait $!
             echo -e "${DEBUG_TEXT}> RESTARTED '${CONTAINER_NAME}'${RESET_TEXT}"
         fi
-
-        # Sleep
-        sleep "$SLEEP_DURATION"
 
         # Reopen PIPE
         exec 3<> "$PIPE"
@@ -568,18 +540,18 @@ export -f reboot_windows
 function force_stop_windows() {
     # Issue Command
     if [[ "$WAFLAVOR" == "libvirt" ]]; then
-        virsh destroy "$VM_NAME" --graceful &>/dev/null && \
+        virsh destroy "$VM_NAME" --graceful &>/dev/null &
+        wait $!
         echo -e "${DEBUG_TEXT}> FORCE STOPPED '${VM_NAME}'${RESET_TEXT}"
     elif [[ "$WAFLAVOR" == "podman" ]]; then
-        podman-compose --file "$COMPOSE_FILE" kill &>/dev/null && \
+        podman-compose --file "$COMPOSE_FILE" kill &>/dev/null &
+        wait $!
         echo -e "${DEBUG_TEXT}> FORCE STOPPED '${CONTAINER_NAME}'${RESET_TEXT}"
     elif [[ "$WAFLAVOR" == "docker" ]]; then
-        docker compose --file "$COMPOSE_FILE" kill &>/dev/null && \
+        docker compose --file "$COMPOSE_FILE" kill &>/dev/null &
+        wait $!
         echo -e "${DEBUG_TEXT}> FORCE STOPPED '${CONTAINER_NAME}'${RESET_TEXT}"
     fi
-
-    # Sleep
-    sleep "$SLEEP_DURATION"
 
     # Reopen PIPE
     exec 3<> "$PIPE"
@@ -591,17 +563,15 @@ export -f force_stop_windows
 
 # Hibernate Windows
 function hibernate_windows() {
-    if pgrep -x "$FREERDP_COMMAND" > /dev/null; then
+    if [[ "$(check_freerdp_running)" == "YES" ]]; then
         # FreeRDP Sessions Running
         show_error_message "ERROR: Hibernating Windows VM <u>FAILED</u>.\nPlease ensure all FreeRDP instance(s) are terminated."
     else
         # Issue Command
         if [[ "$WAFLAVOR" == "libvirt" ]]; then
-            virsh managedsave "$VM_NAME" &>/dev/null && \
+            virsh managedsave "$VM_NAME" &>/dev/null &
+            wait $!
             echo -e "${DEBUG_TEXT}> HIBERNATED '${VM_NAME}'${RESET_TEXT}"
-
-            # Sleep
-            sleep "$SLEEP_DURATION"
 
             # Reopen PIPE
             exec 3<> "$PIPE"
@@ -669,7 +639,6 @@ fi
 # INITIALISATION.
 check_config_exists
 winapps_flavor_detection
-freerdp_command_detection
 check_windows_exists
 generate_menu
 
