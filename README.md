@@ -14,3 +14,5 @@ Feel free to fork, submit pull requests, write issues and promote this project t
     ```bash
     ./WinAppsLauncher.sh
     ```
+
+3. (Optional) Use the instructions within `winapps-launcher.service` to configure a user service to automatically start WinApps Launcher on system boot.

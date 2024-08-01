@@ -10,12 +10,13 @@ declare -rx PATH_TEXT="\033[1;35m"
 declare -rx RESET_TEXT="\033[0m"
 
 # Exit Codes
-declare -rx EC_CDIR_FAILED=1
-declare -rx EC_MISSING_DEP=2
-declare -rx EC_NO_WACONFIG=3
-declare -rx EC_BAD_BACKEND=4
-declare -rx EC_WIN_NOT_SPEC=5
-declare -rx EC_NO_WIN_FOUND=6
+declare -rx EC_DSPLY_UNSET=1
+declare -rx EC_CDIR_FAILED=2
+declare -rx EC_MISSING_DEP=3
+declare -rx EC_NO_WACONFIG=4
+declare -rx EC_BAD_BACKEND=5
+declare -rx EC_WIN_NOT_SPEC=6
+declare -rx EC_NO_WIN_FOUND=7
 
 # Paths
 declare -rx ICONS_PATH="./Icons"
@@ -600,6 +601,9 @@ function refresh_menu() {
 export -f refresh_menu
 
 ### SEQUENTIAL LOGIC ###
+# Check 'DISPLAY' variable.
+[ -n "$DISPLAY" ] || exit "$EC_DSPLY_UNSET"
+
 # SET WORKING DIRECTORY.
 if cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"; then
     # Print Feedback
