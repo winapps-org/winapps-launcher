@@ -128,8 +128,8 @@ function kill_freerdp() {
             # Remove the '.cproc' file extension.
             FREERDP_PROCESS_FILE="${FREERDP_PROCESS_FILE%.cproc}"
 
-            # Gracefully terminate the process (SIGTERM).
-            kill -15 "$FREERDP_PROCESS_FILE" &>/dev/null
+            # Terminate the process (SIGKILL).
+            kill -9 "$FREERDP_PROCESS_FILE" &>/dev/null
 
             # Remove the file.
             # NOTE: This is not necessary as 'bin/winapps' will automatically delete the file once the process terminates.
