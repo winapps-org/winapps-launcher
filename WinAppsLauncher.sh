@@ -24,6 +24,8 @@ declare -rx APPDATA_PATH="${HOME}/.local/share/winapps"
 declare -rx CONFIG_PATH="${HOME}/.config/winapps"
 declare -rx CONFIG_FILE="${CONFIG_PATH}/winapps.conf"
 declare -rx COMPOSE_FILE="${CONFIG_PATH}/compose.yaml"
+declare -rx USER_WINAPPS_APPLICATIONS="${HOME}/.local/share/winapps/apps"
+declare -rx SYSTEM_WINAPPS_APPLICATIONS="/usr/local/share/winapps/apps"
 
 # Menu Entries
 declare -rx MENU_APPLICATIONS="Applications!bash -c app_select!${ICONS_PATH}/Applications.svg"
@@ -175,6 +177,8 @@ function app_select() {
         local ALL_FILES=()
         local APP_LIST=()
         local SORTED_APP_LIST=()
+        local SORTED_APP_STRING=""
+        local FILE_NAMES=()
         local SELECTED_APP=""
         
         # Store the paths of all files within the directory 'WINAPPS_PATH'.
@@ -185,27 +189,58 @@ function app_select() {
         for FILE in "${ALL_FILES[@]}"; do
             if grep -q "${WINAPPS_PATH}/winapps" "$FILE" && [ "$(basename "$FILE")" != "windows" ] && [ "$(basename "$FILE")" != "winapps" ]; then
                 # Store the filename.
-                APP_LIST+=("$(basename "$FILE")")
+                FILENAME=$(basename "$FILE")
+                
+                # Store the application name.
+                if [ -f "${USER_WINAPPS_APPLICATIONS}/${FILENAME}/info" ]; then
+                    # WinApps 'User' Installation.
+                    # Identify the 'FULL_NAME' line and extract the string within double quotes.
+                    APPNAME=$(grep '^FULL_NAME=' "${USER_WINAPPS_APPLICATIONS}/${FILENAME}/info" | sed 's/^FULL_NAME="//;s/"$//')
+                elif [ -f "${SYSTEM_WINAPPS_APPLICATIONS}/${FILENAME}/info" ]; then
+                    # WinApps 'System' Installation.
+                    # Identify the 'FULL_NAME' line and extract the string within double quotes.
+                    APPNAME=$(grep '^FULL_NAME=' "${SYSTEM_WINAPPS_APPLICATIONS}/${FILENAME}/info" | sed 's/^FULL_NAME="//;s/"$//')
+                else
+                    # Set the application name as the file name.
+                    APPNAME="$FILENAME"
+                fi
+
+                # Store names in arrays.
+                APP_LIST+=("${APPNAME}:${FILENAME}")
             fi
         done
 
-        # Sort applications in alphabetical order.
-        # shellcheck disable=SC2207 # Silence warnings regarding preferred use of 'mapfile' or 'read -a'.
-        SORTED_APP_LIST=($(for i in "${APP_LIST[@]}"; do echo "$i"; done | sort))
+        # Sort applications in alphabetical order based on the application name.
+        mapfile -t SORTED_APP_LIST < <(printf "%s\n" "${APP_LIST[@]}" | sort)
+
+        # Convert the array to a colon-delimited string.
+        SORTED_APP_STRING=""
+        for APP in "${SORTED_APP_LIST[@]}"; do
+            # Split entry into two parts based on the colon separator.
+            IFS=':' read -r application_name file_name <<< "$APP"
+            
+            # Append formatted line to data string.
+            SORTED_APP_STRING+="${application_name}\n"
+            SORTED_APP_STRING+="${file_name}\n"
+        done
 
         # Display application selection popup window.
-        SELECTED_APP=$(yad --list \
+        SELECTED_APP=$(echo -e "$SORTED_APP_STRING" | yad --list \
         --title="WinApps Launcher" \
         --width=300 \
         --height=500 \
         --text="Select Windows Application to Launch:" \
         --window-icon="${ICONS_PATH}/AppIcon.svg" \
+        --hide-column=2 \
         --column="Application Name" \
-        "${SORTED_APP_LIST[@]}")
+        --column="File Name")
 
         if [ -n "$SELECTED_APP" ]; then
             # Remove Trailing Bar
-            SELECTED_APP=$(echo "$SELECTED_APP" | cut -d"|" -f1)
+            SELECTED_APP="${SELECTED_APP%|}"
+
+            # Extract the file name.
+            SELECTED_APP=$(echo "$SELECTED_APP" | cut -d'|' -f2)
 
             # Run Selected Application
             winapps "$SELECTED_APP" &>/dev/null &
