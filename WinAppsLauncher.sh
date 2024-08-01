@@ -178,7 +178,6 @@ function app_select() {
         local APP_LIST=()
         local SORTED_APP_LIST=()
         local SORTED_APP_STRING=""
-        local FILE_NAMES=()
         local SELECTED_APP=""
         
         # Store the paths of all files within the directory 'WINAPPS_PATH'.
