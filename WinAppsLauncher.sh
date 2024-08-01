@@ -190,7 +190,7 @@ function app_select() {
             if grep -q "${WINAPPS_PATH}/winapps" "$FILE" && [ "$(basename "$FILE")" != "windows" ] && [ "$(basename "$FILE")" != "winapps" ]; then
                 # Store the filename.
                 FILENAME=$(basename "$FILE")
-                
+
                 # Store the application name.
                 if [ -f "${USER_WINAPPS_APPLICATIONS}/${FILENAME}/info" ]; then
                     # WinApps 'User' Installation.
@@ -218,7 +218,7 @@ function app_select() {
         for APP in "${SORTED_APP_LIST[@]}"; do
             # Split entry into two parts based on the colon separator.
             IFS=':' read -r application_name file_name <<< "$APP"
-            
+
             # Append formatted line to data string.
             SORTED_APP_STRING+="${application_name}\n"
             SORTED_APP_STRING+="${file_name}\n"
