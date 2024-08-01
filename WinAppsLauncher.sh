@@ -208,7 +208,7 @@ function app_select() {
             SELECTED_APP=$(echo "$SELECTED_APP" | cut -d"|" -f1)
 
             # Run Selected Application
-            winapps "$SELECTED_APP" &>/dev/null && \
+            winapps "$SELECTED_APP" &>/dev/null &
             echo -e "${DEBUG_TEXT}> LAUNCHED '${SELECTED_APP}'${RESET_TEXT}"
         fi
     fi
@@ -219,7 +219,7 @@ export -f app_select
 function launch_windows() {
     if check_reachable; then
         # Run Windows
-        winapps windows &>/dev/null && \
+        winapps windows &>/dev/null &
         echo -e "${DEBUG_TEXT}> LAUNCHED WINDOWS RDP SESSION${RESET_TEXT}"
     fi
 }
