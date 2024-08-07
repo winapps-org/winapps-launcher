@@ -1,0 +1,16 @@
+name: Dispatch to repo
+on: [push, workflow_dispatch]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo: ["winapps-org/winapps"]
+    steps:
+      - name: Push to repo
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.PAT }}
+          repository: ${{ matrix.repo }}
+          event-type: update
