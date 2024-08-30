@@ -20,6 +20,7 @@ Type=simple
 Environment="PATH=%h/.local/bin:%h/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Environment="LIBVIRT_DEFAULT_URI=qemu:///system"
 Environment="SCRIPT_PATH=%h/Programs/WinApps Launcher/WinAppsLauncher.sh"
+Environment="LANG=C"
 ExecStart=/bin/bash -c '"$SCRIPT_PATH"'
 ExecStopPost=/bin/bash -c 'echo "[SYSTEMD] WINAPPS LAUNCHER SERVICE EXITED."'
 TimeoutStartSec=5
