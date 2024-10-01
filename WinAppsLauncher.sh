@@ -52,6 +52,14 @@ declare -x WINAPPS_PATH="" # Generated programmatically following dependency che
 declare -x WAFLAVOR=""     # As specified within the WinApps configuration file.
 
 ### FUNCTIONS ###
+# Check 'x11'/'wayland' Display Server Protocol
+function check_dsp() {
+    if [[ -n "$XDG_SESSION_TYPE" && "$XDG_SESSION_TYPE" == "wayland" ]]; then
+        # Set GDK_BACKEND to 'x11' for 'yad' compatibility.
+        export GDK_BACKEND=x11
+    fi
+}
+
 # Check WinApps Configuration File Exists
 function check_config_exists() {
     if [[ ! -f "$CONFIG_FILE" ]]; then
@@ -179,7 +187,7 @@ function app_select() {
         local SORTED_APP_LIST=()
         local SORTED_APP_STRING=""
         local SELECTED_APP=""
-        
+
         # Store the paths of all files within the directory 'WINAPPS_PATH'.
         readarray -t ALL_FILES < <(find "$WINAPPS_PATH" -maxdepth 1 -type f)
 
@@ -493,7 +501,7 @@ function resume_windows() {
     if [[ "$WAFLAVOR" == "libvirt" ]]; then
         virsh resume "$VM_NAME" &>/dev/null &
         wait $!
-        echo -e "${DEBUG_TEXT}> RESUMED '${VM_NAME}'${RESET_TEXT}"        
+        echo -e "${DEBUG_TEXT}> RESUMED '${VM_NAME}'${RESET_TEXT}"
     elif [[ "$WAFLAVOR" == "podman" ]]; then
         podman-compose --file "$COMPOSE_FILE" unpause &>/dev/null &
         wait $!
@@ -635,6 +643,9 @@ function refresh_menu() {
 export -f refresh_menu
 
 ### SEQUENTIAL LOGIC ###
+# Check display server protocol.
+check_dsp
+
 # Check 'DISPLAY' variable.
 [ -n "$DISPLAY" ] || exit "$EC_DSPLY_UNSET"
 
