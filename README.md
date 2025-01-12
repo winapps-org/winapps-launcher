@@ -6,7 +6,7 @@ Feel free to fork, submit pull requests, write issues and promote this project t
 
 ## Installation Instructions
 ### Dependencies
-WinApps should have already brought in everything that the script will need, however a package know as yad may be missing, you can use the instructions below to install it:
+WinApps should have already brought in everything that the script will need, however a package known as yad may be missing, you can use the instructions below to install it:
 #### Debian
     sudo apt install yad
 #### Fedora/RHEL
