@@ -1,6 +1,6 @@
 # [INSTALL INSTRUCTIONS]
 # 1) Change 'SCRIPT_PATH' below to the correct path to 'WinAppsLauncher.sh'.
-# 2) Move this unit file to '~/.config/systemd/user/winapps-launcher.service'.
+# 2) Copy this service file (winapps-launcher.service) to '~/.config/systemd/user/winapps-launcher.service'.
 # 3) Run the following commands:
 #    I)  systemctl --user enable winapps-launcher --now # Enable & Start Service
 #    II) systemctl --user status winapps-launcher       # Verify Service
@@ -19,7 +19,7 @@ Wants=graphical-session.target
 Type=simple
 Environment="PATH=%h/.local/bin:%h/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 Environment="LIBVIRT_DEFAULT_URI=qemu:///system"
-Environment="SCRIPT_PATH=%h/Programs/WinApps Launcher/WinAppsLauncher.sh"
+Environment="SCRIPT_PATH=%h/.local/bin/winapps-src/WinApps-Launcher/WinApps-Launcher.sh"
 Environment="LANG=C"
 ExecStart=/bin/bash -c '"$SCRIPT_PATH"'
 ExecStopPost=/bin/bash -c 'echo "[SYSTEMD] WINAPPS LAUNCHER SERVICE EXITED."'
