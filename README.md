@@ -6,7 +6,8 @@ Feel free to fork, submit pull requests, write issues and promote this project t
 
 ## Installation Instructions
 ### Dependencies
-WinApps should have already brought in everything that the script will need, however a package known as yad may be missing, you can use the instructions below to install it:
+WinApps should have already brought in everything that the script will need, however a package known as `yad` may be missing. You can use the instructions below to install it:
+
 #### Debian
     sudo apt install yad
 #### Fedora/RHEL
@@ -17,26 +18,24 @@ WinApps should have already brought in everything that the script will need, how
     sudo zypper install yad
     
 ### Installation
-1. Open the terminal of your choice.
+1. Install [`WinApps`](https://github.com/winapps-org/winapps).
 
-2. Now, download the git repository with git clone (If you don't want to use git, you can also use wget):
-   ```bash
-    git clone https://github.com/winapps-org/winapps-launcher/
-    ```
+2. Navigate to the `WinApps-Launcher` folder.
 
-3. Once the clone has completed, open the `winapps-launcher` folder:
     ```bash
-    cd winapps-launcher
+    cd ~/.local/bin/winapps-src/WinApps-Launcher
     ```
 
-3. Once there, mark the `WinAppsLauncher.sh` script as executable. 
+3. Mark the `WinApps-Launcher.sh` script as executable. 
+
     ```bash
-    chmod +x WinAppsLauncher.sh
+    chmod +x WinApps-Launcher.sh
     ```
 
-4. Finally, Run the `WinAppsLauncher.sh` script.
+4. Run `WinApps-Launcher.sh`.
+
     ```bash
-    ./WinAppsLauncher.sh
+    ./WinApps-Launcher.sh
     ```
 
-5. (Optional) You can also open the `winapps-launcher.service` with a text editor and use the instructions within to configure a user service that can automatically start the WinApps Launcher on boot!
+5. (Optional) You can also open `winapps-launcher.service` with a text editor and use the instructions within to configure a user service that can automatically start the WinApps Launcher on boot!
