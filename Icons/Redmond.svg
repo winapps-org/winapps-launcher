@@ -1,14 +1,7 @@
-<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
-	<title>Icons</title>
-	<style>
-		.s0 { fill: #ffffff } 
-	</style>
-	<g id="Menu Icons">
-		<g id="Redmond">
-			<path id="Bottom Right" class="s0" d="m404 404h300v300h-300z"/>
-			<path id="Bottom Left" class="s0" d="m64 404h300v300h-300z"/>
-			<path id="Top Right" class="s0" d="m404 64h300v300h-300z"/>
-			<path id="Top Left" class="s0" d="m64 64h300v300h-300z"/>
-		</g>
-	</g>
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="32" height="32">
+	<title>Redmond</title>
+	<path id="Top Left (Red)" fill="#ffffff" d="m64 64h300v300h-300z"/>
+	<path id="Top Right (Green)" fill="#ffffff" d="m404 64h300v300h-300z"/>
+	<path id="Bottom Left (Blue)" fill="#ffffff" d="m64 404h300v300h-300z"/>
+	<path id="Bottom Right (Yellow)" fill="#ffffff" d="m404 404h300v300h-300z"/>
 </svg>

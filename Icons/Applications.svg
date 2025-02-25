@@ -1,11 +1,4 @@
-<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
-	<title>Icons</title>
-	<style>
-		.s0 { fill: #ffffff } 
-	</style>
-	<g id="Menu Icons">
-		<g id="Applications">
-			<path id="Applications" fill-rule="evenodd" class="s0" d="m604 124h-280c-22.1 0-40 17.9-40 40v20h-60v-20c0-55.3 44.7-100 100-100h280c55.2 0 100 44.7 100 100v280c0 55.2-44.8 100-100 100h-20v-60h20c22.1 0 40-17.9 40-40v-280c0-22.1-17.9-40-40-40zm-460 100h320c44.1 0 80 35.9 80 80v320c0 44.1-35.9 80-80 80h-320c-44.1 0-80-35.9-80-80v-320c0-44.1 35.9-80 80-80zm-20 400c0 11 9 20 20 20h320c11 0 20-9 20-20v-240h-360z"/>
-		</g>
-	</g>
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="32" height="32">
+	<title>Applications</title>
+	<path id="Overlapping Windows" fill-rule="evenodd" fill="#ffffff" d="m604 124h-280c-22.1 0-40 17.9-40 40v20h-60v-20c0-55.3 44.7-100 100-100h280c55.2 0 100 44.7 100 100v280c0 55.2-44.8 100-100 100h-20v-60h20c22.1 0 40-17.9 40-40v-280c0-22.1-17.9-40-40-40zm-460 100h320c44.1 0 80 35.9 80 80v320c0 44.1-35.9 80-80 80h-320c-44.1 0-80-35.9-80-80v-320c0-44.1 35.9-80 80-80zm-20 400c0 11 9 20 20 20h320c11 0 20-9 20-20v-240h-360z"/>
 </svg>

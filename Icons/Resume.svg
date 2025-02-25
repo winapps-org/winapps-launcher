@@ -1,11 +1,4 @@
-<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
-	<title>Icons</title>
-	<style>
-		.s0 { fill: #ffffff } 
-	</style>
-	<g id="Menu Icons">
-		<g id="Resume">
-			<path id="Triangle" class="s0" d="m624 384l-480 277.1v-554.2z"/>
-		</g>
-	</g>
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="32" height="32">
+	<title>Resume</title>
+	<path id="Triangle" fill="#ffffff" d="m624 384l-480 277.1v-554.2z"/>
 </svg>

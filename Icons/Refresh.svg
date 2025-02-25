@@ -1,12 +1,5 @@
-<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
-	<title>Icons</title>
-	<style>
-		.s0 { fill: #ffffff } 
-	</style>
-	<g id="Menu Icons">
-		<g id="Refresh">
-			<path id="Big Star" fill-rule="evenodd" class="s0" d="m304 224c0 132.7 107.3 240 240 240-132.7 0-240 107.3-240 240 0-132.7-107.3-240-240-240 132.7 0 240-107.3 240-240z"/>
-			<path id="Little Star" fill-rule="evenodd" class="s0" d="m559 64c0 80.2 64.8 145 145 145-80.2 0-145 64.8-145 145 0-80.2-64.8-145-145-145 80.2 0 145-64.8 145-145z"/>
-		</g>
-	</g>
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="32" height="32">
+	<title>Refresh</title>
+	<path id="Big Star" fill-rule="evenodd" fill="#ffffff" d="m304 224c0 132.7 107.3 240 240 240-132.7 0-240 107.3-240 240 0-132.7-107.3-240-240-240 132.7 0 240-107.3 240-240z"/>
+	<path id="Little Star" fill-rule="evenodd" fill="#ffffff" d="m559 64c0 80.2 64.8 145 145 145-80.2 0-145 64.8-145 145 0-80.2-64.8-145-145-145 80.2 0 145-64.8 145-145z"/>
 </svg>
