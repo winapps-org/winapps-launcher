@@ -1,11 +1,4 @@
-<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
-	<title>Icons</title>
-	<style>
-		.s0 { fill: #ffffff } 
-	</style>
-	<g id="Menu Icons">
-		<g id="Hibernate">
-			<path id="Moon" fill-rule="evenodd" class="s0" d="m384 704c-177 0-320-143-320-320 0-138 87-255.3 209.2-300.3-54.7 57.2-88.2 134.8-88.2 220.3 0 176.4 142.6 319 319 319 40.4 0 79-7.5 114.5-21.1-58.4 62.8-141.8 102.1-234.5 102.1z"/>
-		</g>
-	</g>
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="32" height="32">
+	<title>Hibernate</title>
+	<path id="Moon" fill-rule="evenodd" fill="#ffffff" d="m384 704c-177 0-320-143-320-320 0-138 87-255.3 209.2-300.3-54.7 57.2-88.2 134.8-88.2 220.3 0 176.4 142.6 319 319 319 40.4 0 79-7.5 114.5-21.1-58.4 62.8-141.8 102.1-234.5 102.1z"/>
 </svg>

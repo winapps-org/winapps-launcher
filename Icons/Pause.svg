@@ -1,12 +1,5 @@
-<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
-	<title>Icons</title>
-	<style>
-		.s0 { fill: #ffffff } 
-	</style>
-	<g id="Menu Icons">
-		<g id="Pause">
-			<path id="Left Column" class="s0" d="m124 64h180v640h-180z"/>
-			<path id="Right Column" class="s0" d="m464 64h180v640h-180z"/>
-		</g>
-	</g>
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="32" height="32">
+	<title>Pause</title>
+	<path id="Left Column" fill="#ffffff" d="m124 64h180v640h-180z"/>
+	<path id="Right Column" fill="#ffffff" d="m464 64h180v640h-180z"/>
 </svg>

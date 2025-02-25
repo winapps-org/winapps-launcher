@@ -1,16 +1,9 @@
-<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
-	<title>Icons</title>
-	<style>
-		.s0 { fill: #ffffff } 
-	</style>
-	<g id="Menu Icons">
-		<g id="Quit">
-			<path id="Door Frame" fill-rule="evenodd" class="s0" d="m64 64h460v120h-60v-60h-340v520h340v-60h60v120h-460z"/>
-			<g id="Arrow">
-				<path id="Tail Vertical" class="s0" d="m704 64v290h-60v-290z"/>
-				<path id="Tail Horizontal" class="s0" d="m407 354h297v60h-297z"/>
-				<path id="Head" class="s0" d="m194 384l213-131v262z"/>
-			</g>
-		</g>
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="32" height="32">
+	<title>Quit</title>
+	<path id="Door Frame" fill-rule="evenodd" fill="#ffffff" d="m64 64h460v120h-60v-60h-340v520h340v-60h60v120h-460z"/>
+	<g id="Arrow">
+		<path id="Tail Vertical" fill="#ffffff" d="m704 64v290h-60v-290z"/>
+		<path id="Tail Horizontal" fill="#ffffff" d="m407 354h297v60h-297z"/>
+		<path id="Head" fill="#ffffff" d="m194 384l213-131v262z"/>
 	</g>
 </svg>
