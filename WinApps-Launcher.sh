@@ -672,9 +672,11 @@ if ! command -v yad &> /dev/null; then
 fi
 
 # 'libvirt'
-if ! command -v virsh &> /dev/null; then
-    show_error_message "ERROR: 'libvirt' <u>NOT FOUND</u>.\nPlease ensure 'libvirt' is installed."
-    exit "$EC_MISSING_DEP"
+if [[ "$WAFLAVOR" == "libvirt" ]]; then
+    if ! command -v virsh &> /dev/null; then
+        show_error_message "ERROR: 'libvirt' <u>NOT FOUND</u>.\nPlease ensure 'libvirt' is installed."
+        exit "$EC_MISSING_DEP"
+    fi
 fi
 
 # 'winapps'
