@@ -90,7 +90,8 @@ function winapps_flavor_detection() {
         # Check if a valid flavor was specified.
          if [[ "$WAFLAVOR" != "docker" && "$WAFLAVOR" != "podman" && "$WAFLAVOR" != "libvirt" && "$WAFLAVOR" != "manual" ]]; then
             # Throw an error.
-            show_error_message "ERROR: Specified WinApps backend '${WAFLAVOR}' <u>INVALID</u>.\nPlease ensure 'WAFLAVOR' is set to \"docker\", \"podman\", \"libvirt\", or \"manual\" within <i>${CONFIG_FILE}</i>."            exit "$EC_BAD_BACKEND"
+            show_error_message "ERROR: Specified WinApps backend '${WAFLAVOR}' <u>INVALID</u>.\nPlease ensure 'WAFLAVOR' is set to \"docker\", \"podman\", \"libvirt\", or \"manual\" within <i>${CONFIG_FILE}</i>."
+            exit "$EC_BAD_BACKEND"
         fi
     fi
 }
