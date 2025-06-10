@@ -88,7 +88,8 @@ function winapps_flavor_detection() {
         echo -e "${DEBUG_TEXT}> USING DEFAULT BACKEND '${WAFLAVOR}'${RESET_TEXT}"
     else
         # Check if a valid flavor was specified.
-        if [[ "$WAFLAVOR" != "docker" && "$WAFLAVOR" != "podman" && "$WAFLAVOR" != "libvirt" ]]; then
+#        if [[ "$WAFLAVOR" != "docker" && "$WAFLAVOR" != "podman" && "$WAFLAVOR" != "libvirt" ]]; then
+         if [[ "$WAFLAVOR" != "docker" && "$WAFLAVOR" != "podman" && "$WAFLAVOR" != "libvirt" && "$WAFLAVOR" != "manual" ]]; then
             # Throw an error.
             show_error_message "ERROR: Specified WinApps backend '${WAFLAVOR}' <u>INVALID</u>.\nPlease ensure 'WAFLAVOR' is set to \"docker\", \"podman\" or \"libvirt\" within <i>${CONFIG_FILE}</i>."
             exit "$EC_BAD_BACKEND"
@@ -326,6 +327,17 @@ export -f check_reachable
 function generate_menu() {
     local STATE=""
 
+
+    if [[ "$WAFLAVOR" == "manual" ]]; then
+        echo -e "${DEBUG_TEXT}> SKIPPING VM CONTROL IN 'manual' MODE${RESET_TEXT}"
+            echo "menu:\
+      ${MENU_APPLICATIONS}|\
+      ${MENU_REDMOND}|\
+      ${MENU_KILL}|\
+      ${MENU_REFRESH}|\
+      ${MENU_QUIT}" >&3
+          return
+    fi
     # Check Windows State
     if [[ "$WAFLAVOR" == "libvirt" ]]; then
         # Possible values are 'running', 'paused' and 'shut off'.
@@ -412,6 +424,11 @@ export -f generate_menu
 
 # Start Windows
 function start_windows() {
+
+    if [[ "$WAFLAVOR" == "manual" ]]; then
+        echo -e "${DEBUG_TEXT}> SKIPPING VM CONTROL IN 'manual' MODE${RESET_TEXT}"
+        return
+    fi
     # Issue Command
     if [[ "$WAFLAVOR" == "libvirt" ]]; then
         virsh start "$VM_NAME" &>/dev/null &
