@@ -43,7 +43,7 @@ declare -rx MENU_RESUME="Resume!bash -c resume_windows!${ICONS_PATH}/Resume.svg"
 declare -rx MENU_HIBERNATE="Hibernate!bash -c hibernate_windows!${ICONS_PATH}/Hibernate.svg"
 
 # Other
-declare -rx VM_NAME="RDPWindows"
+declare -rx DEFAULT_VM_NAME="RDPWindows"
 declare -rx CONTAINER_NAME="WinApps"
 declare -rx DEFAULT_FLAVOR="docker"
 
@@ -69,8 +69,8 @@ function check_config_exists() {
     fi
 }
 
-# WinApps Flavor Detection
-function winapps_flavor_detection() {
+# WinApps Read necessary config values
+function winapps_read_config_file() {
     # Read the WinApps configuration file line by line.
     while IFS= read -r LINE; do
         # Check if the line begins with 'WAFLAVOR='.
@@ -78,7 +78,11 @@ function winapps_flavor_detection() {
             # Extract the value.
             WAFLAVOR=$(echo "$LINE" | sed -n '/^WAFLAVOR="/s/^WAFLAVOR="\([^"]*\)".*/\1/p')
             echo -e "${DEBUG_TEXT}> USING BACKEND '${WAFLAVOR}'${RESET_TEXT}"
-            break
+        # Check if the line begins with 'VM_NAME='.
+        elif [[ "$LINE" == VM_NAME=\"* ]]; then
+            # Extract the value.
+            VM_NAME=$(echo "$LINE" | sed -n '/^VM_NAME="/s/^VM_NAME="\([^"]*\)".*/\1/p')
+            echo -e "${DEBUG_TEXT}> USING VM NAME '${VM_NAME}'${RESET_TEXT}"
         fi
     done < "$CONFIG_FILE"
 
@@ -93,6 +97,12 @@ function winapps_flavor_detection() {
             show_error_message "ERROR: Specified WinApps backend '${WAFLAVOR}' <u>INVALID</u>.\nPlease ensure 'WAFLAVOR' is set to \"docker\", \"podman\", \"libvirt\", or \"manual\" within <i>${CONFIG_FILE}</i>."
             exit "$EC_BAD_BACKEND"
         fi
+    fi
+
+    if [[ -z "$VM_NAME" ]]; then
+        # Use the default VM name if it was not specified.
+        VM_NAME="$DEFAULT_VM_NAME"
+        echo -e "${DEBUG_TEXT}> USING DEFAULT VM_NAME '${DEFAULT_VM_NAME}'${RESET_TEXT}"
     fi
 }
 
@@ -705,7 +715,7 @@ fi
 
 # INITIALISATION.
 check_config_exists
-winapps_flavor_detection
+winapps_read_config_file
 check_windows_exists
 generate_menu
 
