@@ -284,7 +284,7 @@ function check_windows_exists() {
     if [[ $WAFLAVOR == "libvirt" ]]; then
         # Check Virtual Machine State
         local WINSTATE=""
-        WINSTATE=$(virsh domstate "$VM_NAME" 2>&1 | xargs)
+        WINSTATE=$(LC_ALL=C virsh domstate "$VM_NAME" 2>&1 | xargs)
 
         if grep -q "argument is empty" <<< "$WINSTATE"; then
             # Unspecified
@@ -315,9 +315,9 @@ export -f check_windows_exists
 function check_reachable() {
     # Only bother checking if Windows is reachable when using 'libvirt'.
     if [[ "$WAFLAVOR" == "libvirt" ]]; then
-        #VM_IP=$(virsh net-dhcp-leases default | grep "${VM_NAME}" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}') # Unreliable since this does not always list VM
+        #VM_IP=$(LC_ALL=C virsh net-dhcp-leases default | grep "${VM_NAME}" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}') # Unreliable since this does not always list VM
         # shellcheck disable=SC2155 # Silence warning regarding declaring and assigning variables separately.
-        local VM_MAC=$(virsh domiflist "$VM_NAME" | grep -Eo '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})') # Virtual Machine MAC Address
+        local VM_MAC=$(LC_ALL=C virsh domiflist "$VM_NAME" | grep -Eo '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})') # Virtual Machine MAC Address
         # shellcheck disable=SC2155 # Silence warning regarding declaring and assigning variables separately.
         local VM_IP=$(ip neigh show | grep "$VM_MAC" | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}") # Virtual Machine IP Address
 
@@ -352,7 +352,7 @@ function generate_menu() {
     # Check Windows State
     if [[ "$WAFLAVOR" == "libvirt" ]]; then
         # Possible values are 'running', 'paused' and 'shut off'.
-        STATE=$(virsh domstate "$VM_NAME" 2>&1 | xargs)
+        STATE=$(LC_ALL=C virsh domstate "$VM_NAME" 2>&1 | xargs)
 
         # Map state to standard terminology.
         if [[ "$STATE" == "running" ]]; then
