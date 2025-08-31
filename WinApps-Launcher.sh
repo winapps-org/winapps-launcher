@@ -20,11 +20,11 @@ declare -rx EC_NO_WIN_FOUND=7
 
 # Paths
 declare -rx ICONS_PATH="./Icons"
-declare -rx APPDATA_PATH="${HOME}/.local/share/winapps"
-declare -rx CONFIG_PATH="${HOME}/.config/winapps"
+declare -rx APPDATA_PATH="${XDG_DATA_HOME:-$HOME/.local/share}/winapps"
+declare -rx CONFIG_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/winapps"
 declare -rx CONFIG_FILE="${CONFIG_PATH}/winapps.conf"
 declare -rx COMPOSE_FILE="${CONFIG_PATH}/compose.yaml"
-declare -rx USER_WINAPPS_APPLICATIONS="${HOME}/.local/share/winapps/apps"
+declare -rx USER_WINAPPS_APPLICATIONS="${APPDATA_PATH}/apps"
 declare -rx SYSTEM_WINAPPS_APPLICATIONS="/usr/local/share/winapps/apps"
 
 # Menu Entries
