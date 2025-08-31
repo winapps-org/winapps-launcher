@@ -43,7 +43,7 @@ declare -rx MENU_RESUME="Resume!bash -c resume_windows!${ICONS_PATH}/Resume.svg"
 declare -rx MENU_HIBERNATE="Hibernate!bash -c hibernate_windows!${ICONS_PATH}/Hibernate.svg"
 
 # Other
-declare -rx VM_NAME="RDPWindows"
+declare -rx DEFAULT_VM_NAME="RDPWindows"
 declare -rx CONTAINER_NAME="WinApps"
 declare -rx DEFAULT_FLAVOR="docker"
 
@@ -69,29 +69,41 @@ function check_config_exists() {
     fi
 }
 
-# WinApps Flavor Detection
-function winapps_flavor_detection() {
+# Read WinApps configuration file
+function read_winapps_config_file() {
     # Read the WinApps configuration file line by line.
     while IFS= read -r LINE; do
         # Check if the line begins with 'WAFLAVOR='.
         if [[ "$LINE" == WAFLAVOR=\"* ]]; then
             # Extract the value.
             WAFLAVOR=$(echo "$LINE" | sed -n '/^WAFLAVOR="/s/^WAFLAVOR="\([^"]*\)".*/\1/p')
-            echo -e "${DEBUG_TEXT}> USING BACKEND '${WAFLAVOR}'${RESET_TEXT}"
-            break
+        # Check if the line begins with 'VM_NAME='.
+        elif [[ "$LINE" == VM_NAME=\"* ]]; then
+            # Extract the value.
+            VM_NAME=$(echo "$LINE" | sed -n '/^VM_NAME="/s/^VM_NAME="\([^"]*\)".*/\1/p')
         fi
     done < "$CONFIG_FILE"
 
+    # Use the default VM name if a name was not specified.
+    if [[ -z "$VM_NAME" ]]; then
+        VM_NAME="$DEFAULT_VM_NAME"
+        echo -e "${DEBUG_TEXT}> USING DEFAULT VM_NAME '${VM_NAME}'${RESET_TEXT}"
+    else
+        echo -e "${DEBUG_TEXT}> USING VM NAME '${VM_NAME}'${RESET_TEXT}"
+    fi
+
+    # Use the default WinApps flavor if a flavor was not specified.
     if [[ -z "$WAFLAVOR" ]]; then
-        # Use the default WinApps flavor if it was not specified.
         WAFLAVOR="$DEFAULT_FLAVOR"
         echo -e "${DEBUG_TEXT}> USING DEFAULT BACKEND '${WAFLAVOR}'${RESET_TEXT}"
     else
         # Check if a valid flavor was specified.
-         if [[ "$WAFLAVOR" != "docker" && "$WAFLAVOR" != "podman" && "$WAFLAVOR" != "libvirt" && "$WAFLAVOR" != "manual" ]]; then
+        if [[ "$WAFLAVOR" != "docker" && "$WAFLAVOR" != "podman" && "$WAFLAVOR" != "libvirt" && "$WAFLAVOR" != "manual" ]]; then
             # Throw an error.
             show_error_message "ERROR: Specified WinApps backend '${WAFLAVOR}' <u>INVALID</u>.\nPlease ensure 'WAFLAVOR' is set to \"docker\", \"podman\", \"libvirt\", or \"manual\" within <i>${CONFIG_FILE}</i>."
             exit "$EC_BAD_BACKEND"
+        else
+            echo -e "${DEBUG_TEXT}> USING BACKEND '${WAFLAVOR}'${RESET_TEXT}"
         fi
     fi
 }
@@ -705,7 +717,7 @@ fi
 
 # INITIALISATION.
 check_config_exists
-winapps_flavor_detection
+read_winapps_config_file
 check_windows_exists
 generate_menu
 
