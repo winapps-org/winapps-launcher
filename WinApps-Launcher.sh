@@ -20,11 +20,11 @@ declare -rx EC_NO_WIN_FOUND=7
 
 # Paths
 declare -rx ICONS_PATH="./Icons"
-declare -rx APPDATA_PATH="${HOME}/.local/share/winapps"
-declare -rx CONFIG_PATH="${HOME}/.config/winapps"
+declare -rx APPDATA_PATH="${XDG_DATA_HOME:-$HOME/.local/share}/winapps"
+declare -rx CONFIG_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/winapps"
 declare -rx CONFIG_FILE="${CONFIG_PATH}/winapps.conf"
 declare -rx COMPOSE_FILE="${CONFIG_PATH}/compose.yaml"
-declare -rx USER_WINAPPS_APPLICATIONS="${HOME}/.local/share/winapps/apps"
+declare -rx USER_WINAPPS_APPLICATIONS="${APPDATA_PATH}/apps"
 declare -rx SYSTEM_WINAPPS_APPLICATIONS="/usr/local/share/winapps/apps"
 
 # Menu Entries
@@ -284,7 +284,7 @@ function check_windows_exists() {
     if [[ $WAFLAVOR == "libvirt" ]]; then
         # Check Virtual Machine State
         local WINSTATE=""
-        WINSTATE=$(virsh domstate "$VM_NAME" 2>&1 | xargs)
+        WINSTATE=$(LC_ALL=C virsh domstate "$VM_NAME" 2>&1 | xargs)
 
         if grep -q "argument is empty" <<< "$WINSTATE"; then
             # Unspecified
@@ -315,9 +315,9 @@ export -f check_windows_exists
 function check_reachable() {
     # Only bother checking if Windows is reachable when using 'libvirt'.
     if [[ "$WAFLAVOR" == "libvirt" ]]; then
-        #VM_IP=$(virsh net-dhcp-leases default | grep "${VM_NAME}" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}') # Unreliable since this does not always list VM
+        #VM_IP=$(LC_ALL=C virsh net-dhcp-leases default | grep "${VM_NAME}" | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}') # Unreliable since this does not always list VM
         # shellcheck disable=SC2155 # Silence warning regarding declaring and assigning variables separately.
-        local VM_MAC=$(virsh domiflist "$VM_NAME" | grep -Eo '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})') # Virtual Machine MAC Address
+        local VM_MAC=$(LC_ALL=C virsh domiflist "$VM_NAME" | grep -Eo '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})') # Virtual Machine MAC Address
         # shellcheck disable=SC2155 # Silence warning regarding declaring and assigning variables separately.
         local VM_IP=$(ip neigh show | grep "$VM_MAC" | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}") # Virtual Machine IP Address
 
@@ -352,7 +352,7 @@ function generate_menu() {
     # Check Windows State
     if [[ "$WAFLAVOR" == "libvirt" ]]; then
         # Possible values are 'running', 'paused' and 'shut off'.
-        STATE=$(virsh domstate "$VM_NAME" 2>&1 | xargs)
+        STATE=$(LC_ALL=C virsh domstate "$VM_NAME" 2>&1 | xargs)
 
         # Map state to standard terminology.
         if [[ "$STATE" == "running" ]]; then
