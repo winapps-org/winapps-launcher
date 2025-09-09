@@ -91,6 +91,7 @@ function read_winapps_config_file() {
     else
         echo -e "${DEBUG_TEXT}> USING VM NAME '${VM_NAME}'${RESET_TEXT}"
     fi
+    export VM_NAME
 
     # Use the default WinApps flavor if a flavor was not specified.
     if [[ -z "$WAFLAVOR" ]]; then
