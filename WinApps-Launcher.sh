@@ -50,6 +50,7 @@ declare -rx DEFAULT_FLAVOR="docker"
 ### GLOBAL VARIABLES ###
 declare -x WINAPPS_PATH="" # Generated programmatically following dependency checks.
 declare -x WAFLAVOR=""     # As specified within the WinApps configuration file.
+declare -x VM_NAME=""      # Export VM_NAME for subshells
 
 ### FUNCTIONS ###
 # Check 'x11'/'wayland' Display Server Protocol
