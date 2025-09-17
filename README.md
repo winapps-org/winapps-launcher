@@ -20,7 +20,7 @@ WinApps should have already brought in everything that the script will need, how
 ### Installation
 1.  Ensure you have already installed [`WinApps`](https://github.com/winapps-org/winapps).
 
-2.  Identify your WinApps source directory. This depends on whether you ran the installer with `sudo`.
+2.  Identify your WinApps source directory.
     *   For a local user installation: `~/.local/bin/winapps-src`
     *   For a system-wide installation: `/usr/local/bin/winapps-src`
 
