@@ -8,7 +8,7 @@ Feel free to fork, submit pull requests, write issues and promote this project t
 ### Dependencies
 WinApps should have already brought in everything that the script will need, however a package known as `yad` may be missing. You can use the instructions below to install it:
 
-#### Debian
+#### Debian / Zorin OS / Ubuntu / Linux Mint
     sudo apt install yad
 #### Fedora/RHEL
     sudo dnf install yad
@@ -18,24 +18,35 @@ WinApps should have already brought in everything that the script will need, how
     sudo zypper install yad
     
 ### Installation
-1. Install [`WinApps`](https://github.com/winapps-org/winapps).
+1.  Ensure you have already installed [`WinApps`](https://github.com/winapps-org/winapps).
 
-2. Navigate to the `WinApps-Launcher` folder.
+2.  Identify your WinApps source directory. This depends on whether you ran the installer with `sudo`.
+    *   For a local user installation: `~/.local/bin/winapps-src`
+    *   For a system-wide installation: `/usr/local/bin/winapps-src`
 
-    ```bash
-    cd ~/.local/bin/winapps-src/WinApps-Launcher
-    ```
-
-3. Mark the `WinApps-Launcher.sh` script as executable. 
+3.  Set a variable in your terminal pointing to this directory. **Copy the line that matches your setup.**
 
     ```bash
-    chmod +x WinApps-Launcher.sh
+    # FOR LOCAL INSTALL:
+    WINAPPS_SRC_DIR="$HOME/.local/bin/winapps-src"
+
+    # --- OR ---
+
+    # FOR SYSTEM-WIDE INSTALL:
+    WINAPPS_SRC_DIR="/usr/local/bin/winapps-src"
     ```
 
-4. Run `WinApps-Launcher.sh`.
+4.  Now, run the following commands to clone the repository and run the launcher. This will place `WinApps-Launcher` inside your existing `winapps-src` directory.
 
     ```bash
-    ./WinApps-Launcher.sh
+    # Clone the repository into the correct location
+    git clone https://github.com/winapps-org/WinApps-Launcher.git "${WINAPPS_SRC_DIR}/WinApps-Launcher"
+
+    # Mark the script as executable
+    chmod +x "${WINAPPS_SRC_DIR}/WinApps-Launcher/WinApps-Launcher.sh"
+
+    # Run the launcher
+    "${WINAPPS_SRC_DIR}/WinApps-Launcher/WinApps-Launcher.sh"
     ```
 
-5. (Optional) You can also open `winapps-launcher.service` with a text editor and use the instructions within to configure a user service that can automatically start the WinApps Launcher on boot!
+5.  (Optional) You can open `${WINAPPS_SRC_DIR}/WinApps-Launcher/winapps-launcher.service` with a text editor and use the instructions within to configure a user service that can automatically start the WinApps Launcher on boot!
