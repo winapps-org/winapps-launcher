@@ -19,7 +19,7 @@ declare -rx EC_WIN_NOT_SPEC=6
 declare -rx EC_NO_WIN_FOUND=7
 
 # Paths
-declare -rx ICONS_PATH="./Icons"
+declare -rx ICONS_PATH="./icons"
 declare -rx APPDATA_PATH="${XDG_DATA_HOME:-$HOME/.local/share}/winapps"
 declare -rx CONFIG_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/winapps"
 declare -rx CONFIG_FILE="${CONFIG_PATH}/winapps.conf"
