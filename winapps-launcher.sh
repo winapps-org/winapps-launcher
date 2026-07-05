@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+export PATH="$HOME/.local/bin:$PATH" 
 ### GLOBAL CONSTANTS ###
 # ANSI Escape Sequences
 declare -rx ERROR_TEXT="\033[1;31m"
