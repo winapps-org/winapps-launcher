@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+[[ ":$PATH:" != *":$HOME/.local/bin:"* ]] && export PATH="$PATH:$HOME/.local/bin" 
 ### GLOBAL CONSTANTS ###
 # ANSI Escape Sequences
 declare -rx ERROR_TEXT="\033[1;31m"
