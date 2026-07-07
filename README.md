@@ -7,7 +7,7 @@ Feel free to fork, submit pull requests, open issues and promote this project to
 ## Dependencies
 You should already have most required dependencies after installing WinApps, but `yad` may be missing.
 
-### Arch / Debian / Ubuntu / Linux Mint / Zorin OS
+### Debian / Ubuntu / Linux Mint / Zorin OS
 ```bash
 sudo apt install yad
 ```
